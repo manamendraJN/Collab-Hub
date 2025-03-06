@@ -28,11 +28,14 @@ export default function Header() {
       
       
       <div className="space-x-4">
-      <Link to="/home">
+      <Link to="/dashboard">
           <span className="text-gray-600 hover:text-blue-500">Dashboard</span>
         </Link>
         <Link to="/project">
           <span className="text-gray-600 hover:text-blue-500">Projects</span>
+        </Link>
+        <Link to="/tasks">
+          <span className="text-gray-600 hover:text-blue-500">Tasks</span>
         </Link>
         <Link to="/teams">
           <span className="text-gray-600 hover:text-blue-500">Teams</span>
