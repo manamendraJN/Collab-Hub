@@ -8,8 +8,11 @@ import Signin from './pages/SignIn.jsx';
 import SignUp from './pages/SignUp.jsx';
 import About from './pages/About.jsx';
 import Profile from './pages/profile.jsx';
-import Home from './pages/home.jsx';
+import Dashboard from './pages/dashboard.jsx';
 import Project from './pages/project.jsx'
+import Teams from './pages/Teams.jsx';
+import Messages from './pages/Messages.jsx';
+import Tasks from './pages/Tasks.jsx';
 
 function AppContent() {
   const location = useLocation();
@@ -24,8 +27,11 @@ function AppContent() {
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/about" element={<About />} />
         <Route path="/profile" element={<Profile/>}/>
-        <Route path="/home" element={<Home />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/project" element={<Project/>} />
+        <Route path="/teams" element = {<Teams/>} />
+        <Route path="/messages" element = {<Messages/>} />
+        <Route path="/tasks" element = {<Tasks/>} />
         
       </Routes>
     </>
