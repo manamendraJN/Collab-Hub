@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import Header from './components/Header';
 import Landingpg from './pages/landingpg.jsx';
 import Signin from './pages/SignIn.jsx';
 import SignUp from './pages/SignUp.jsx';
@@ -15,7 +16,7 @@ function AppContent() {
   return (
     <>
       <ToastContainer />
-
+      {location.pathname !== "/sign-up" && location.pathname !== "/" && <Header />}
       <Routes>
 
         <Route path="/" element={<Landingpg />} />
