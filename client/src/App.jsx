@@ -4,7 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import Header from './components/Header';
 import Landingpg from './pages/landingpg.jsx';
-import Signin from './pages/SignIn.jsx';
+import Login from './pages/Login.jsx';
 import SignUp from './pages/SignUp.jsx';
 import About from './pages/About.jsx';
 import Profile from './pages/profile.jsx';
@@ -19,11 +19,11 @@ function AppContent() {
   return (
     <>
       <ToastContainer />
-      {location.pathname !== "/sign-up" && location.pathname !== "/" && <Header />}
+      {location.pathname !== "/sign-up" && location.pathname !== "/" && location.pathname !== "/login" && <Header />}
       <Routes>
 
         <Route path="/" element={<Landingpg />} />
-        <Route path="/sign-in" element={<Signin />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/about" element={<About />} />
         <Route path="/profile" element={<Profile/>}/>
