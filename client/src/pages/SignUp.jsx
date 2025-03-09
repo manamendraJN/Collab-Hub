@@ -45,7 +45,7 @@ export default function SignUp() {
         position: "top-right",
         autoClose: 2000,
       });
-      navigate("/sign-in");
+      navigate("/login");
     } catch (error) {
       setLoading(false);
       setError(error?.message || "Something went wrong! Please try again.");
@@ -122,7 +122,7 @@ export default function SignUp() {
         {error && <p className="text-red-500 mt-3 text-center">{error}</p>}
 
         <p className="text-center text-gray-500 mt-4">
-          Already have an account? <Link to="/sign-in" className="text-blue-600 hover:underline">Login</Link>
+          Already have an account? <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
         </p>
       </motion.div>
     </div>
