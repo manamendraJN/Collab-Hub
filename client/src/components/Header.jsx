@@ -22,7 +22,7 @@ export default function Header() {
       transition={{ duration: 0.5 }}
       className="bg-white shadow-md py-4 px-6 flex justify-between items-center"
     >
-      <Link to="/home">
+      <Link to="/dashboard">
         <h1 className="text-xl font-bold text-blue-600">Remote Collab</h1>
       </Link>
       
@@ -53,7 +53,7 @@ export default function Header() {
       
       
       <div>
-        <Link to="/sign-in">
+        {/* <Link to="/sign-in">
           <button className="px-4 py-2 border rounded-lg text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white transition">
             Login
           </button>
@@ -62,7 +62,7 @@ export default function Header() {
           <button className="ml-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
             Register
           </button>
-        </Link>
+        </Link> */}
       </div>
     </motion.nav>
   );
