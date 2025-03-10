@@ -1,6 +1,6 @@
 import Task from "../models/task.model.js";
 import Project from "../models/project.model.js";
-import TeamMember from "../models/teamMember.model.js";
+import Team from "../models/teamMember.model.js";
 
 // ✅ Create a new task
 export const createTask = async (req, res) => {
@@ -14,7 +14,7 @@ export const createTask = async (req, res) => {
     }
 
     // Check if assigned member exists
-    const existingMember = await TeamMember.findById(assignedMember);
+    const existingMember = await Team.findById(assignedMember);
     if (!existingMember) {
       return res.status(404).json({ success: false, message: "Assigned member not found" });
     }
