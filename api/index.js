@@ -6,6 +6,7 @@ import authRouter from './routes/auth.route.js';
 import projectRoutes from "./routes/project.route.js";
 import teamRoutes from "./routes/team.route.js";
 import teamMemberRoutes from "./routes/teamMember.route.js";
+import taskRoutes from "./routes/task.routes.js";
 
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/projects", projectRoutes);
 app.use("/api/team", teamRoutes);
 app.use("/api/team-members", teamMemberRoutes);
+app.use("/api/tasks", taskRoutes);
 
 
 app.use((err, req, res, next) => {
