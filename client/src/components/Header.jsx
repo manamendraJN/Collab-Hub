@@ -49,6 +49,7 @@ export default function Header() {
         <Link to="/about">
           <span className="text-gray-600 hover:text-blue-500">About</span>
         </Link>
+        <Link to="/team-members" className="text-gray-600 hover:text-blue-500">Team Members</Link>
       </div>
       
       
