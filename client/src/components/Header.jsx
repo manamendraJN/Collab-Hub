@@ -37,9 +37,7 @@ export default function Header() {
         <Link to="/tasks">
           <span className="text-gray-600 hover:text-blue-500">Tasks</span>
         </Link>
-        <Link to="/teams">
-          <span className="text-gray-600 hover:text-blue-500">Teams</span>
-        </Link>
+        <Link to="/team-members" className="text-gray-600 hover:text-blue-500">Team Members</Link>
         <Link to="/messages">
           <span className="text-gray-600 hover:text-blue-500">Messages</span>
         </Link>
@@ -49,7 +47,7 @@ export default function Header() {
         <Link to="/about">
           <span className="text-gray-600 hover:text-blue-500">About</span>
         </Link>
-        <Link to="/team-members" className="text-gray-600 hover:text-blue-500">Team Members</Link>
+        
       </div>
       
       
