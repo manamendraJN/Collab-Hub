@@ -4,15 +4,7 @@ import { toast } from "react-toastify";
 export default function Task() {
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState({});
-  const [teamAssignments, setTeamAssignments] = useState({});
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    dueDate: "",
-    priority: "Low",
-    complexity: "Simple",
-    assignedMember: "",
-  });
+  const [formData, setFormData] = useState({}); // Store form data per project
 
   useEffect(() => {
     fetchProjects();
@@ -25,7 +17,19 @@ export default function Task() {
       });
       const data = await res.json();
       setProjects(data.projects);
-      fetchAllTeamMembers(data.projects); // Load team members for all projects
+
+      // Initialize formData for each project
+      const initialForms = {};
+      data.projects.forEach((project) => {
+        initialForms[project._id] = { 
+          title: "", 
+          description: "", 
+          dueDate: "", 
+          priority: "Low", 
+          complexity: "Simple" 
+        };
+      });
+      setFormData(initialForms);
     } catch (error) {
       console.error("Error fetching projects", error);
     }
@@ -43,28 +47,8 @@ export default function Task() {
     }
   };
 
-  const fetchAllTeamMembers = async (projectsList) => {
-    try {
-      let assignments = {};
-      for (const project of projectsList) {
-        const res = await fetch(`/api/team/${project._id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        const data = await res.json();
-        assignments[project._id] = data.team?.members || []; // Store members per project
-      }
-      setTeamAssignments(assignments);
-    } catch (error) {
-      console.error("Error fetching team members", error);
-    }
-  };
-
   const handleTaskSubmit = async (e, projectId) => {
     e.preventDefault();
-    if (!formData.assignedMember) {
-      toast.error("Please select a team member.");
-      return;
-    }
 
     try {
       const res = await fetch("/api/tasks", {
@@ -73,14 +57,19 @@ export default function Task() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ ...formData, project: projectId }),
+        body: JSON.stringify({ ...formData[projectId], project: projectId }),
       });
 
       const data = await res.json();
       if (data.success) {
         toast.success("Task created successfully!");
-        setFormData({ title: "", description: "", dueDate: "", priority: "Low", complexity: "Simple", assignedMember: "" });
+        setFormData((prev) => ({
+          ...prev,
+          [projectId]: { title: "", description: "", dueDate: "", priority: "Low", complexity: "Simple" },
+        }));
         fetchTasks(projectId);
+      } else {
+        toast.error(data.message || "Failed to create task");
       }
     } catch (error) {
       console.error("Error creating task:", error);
@@ -88,7 +77,14 @@ export default function Task() {
     }
   };
 
-  
+  const handleInputChange = (e, projectId) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [projectId]: { ...prev[projectId], [name]: value },
+    }));
+  };
+
   return (
     <div className="container mx-auto p-6">
       <h2 className="text-2xl font-semibold">Task Management</h2>
@@ -103,22 +99,58 @@ export default function Task() {
             <h4 className="mt-4 font-semibold">Create Task for {project.name}</h4>
 
             <form onSubmit={(e) => handleTaskSubmit(e, project._id)} className="mt-4">
-              <input type="text" placeholder="Task Title" className="input-field" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
-              <textarea placeholder="Task Description" className="input-field" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
-              <input type="date" className="input-field" value={formData.dueDate} onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })} required />
+              <input 
+                type="text" 
+                name="title" 
+                placeholder="Task Title" 
+                className="input-field" 
+                value={formData[project._id]?.title || ""} 
+                onChange={(e) => handleInputChange(e, project._id)} 
+                required 
+              />
+              
+              <textarea 
+                name="description" 
+                placeholder="Task Description" 
+                className="input-field" 
+                value={formData[project._id]?.description || ""} 
+                onChange={(e) => handleInputChange(e, project._id)} 
+                required 
+              />
 
-              {/* Team Members Dropdown */}
-              <select className="input-field" value={formData.assignedMember} onChange={(e) => setFormData({ ...formData, assignedMember: e.target.value })} required>
-                <option value="">Select Team Member</option>
-                {teamAssignments[project._id]?.length > 0 ? (
-                  teamAssignments[project._id].map((member) => (
-                    <option key={member._id} value={member._id}>
-                      {member.name} ({member.email})
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>No team members available</option>
-                )}
+              <input 
+                type="date" 
+                name="dueDate" 
+                className="input-field" 
+                value={formData[project._id]?.dueDate || ""} 
+                onChange={(e) => handleInputChange(e, project._id)} 
+                required 
+              />
+
+              {/* Priority Dropdown */}
+              <select 
+                name="priority" 
+                className="input-field" 
+                value={formData[project._id]?.priority || "Low"} 
+                onChange={(e) => handleInputChange(e, project._id)} 
+                required
+              >
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+
+              {/* Complexity Dropdown */}
+              <select 
+                name="complexity" 
+                className="input-field" 
+                value={formData[project._id]?.complexity || "Simple"} 
+                onChange={(e) => handleInputChange(e, project._id)} 
+                required
+              >
+                <option value="Simple">Simple</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Complex">Complex</option>
               </select>
 
               <button type="submit" className="btn-primary mt-4">Create Task</button>
