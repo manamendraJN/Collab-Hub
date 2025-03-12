@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { motion } from 'framer-motion';
 
 export default function Task() {
   const [projects, setProjects] = useState([]);
@@ -85,97 +86,170 @@ export default function Task() {
     }));
   };
 
-  return (
-    <div className="container mx-auto p-6">
-      <h2 className="text-2xl font-semibold">Task Management</h2>
+  const handleDeleteTask = async (taskId, projectId) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+  
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+  
+      const data = await res.json();
+  
+      if (data.success) {
+        toast.success("Task deleted successfully!");
+        setTasks((prev) => ({
+          ...prev,
+          [projectId]: prev[projectId].filter((task) => task._id !== taskId),
+        }));
+      } else {
+        toast.error(data.message || "Failed to delete task.");
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      toast.error("Something went wrong. Please try again.");
+    }
+  };
+  
+
+    return (
+    <div className="max-w-6xl mx-auto p-6 pt-16">
       {projects.length === 0 ? (
-        <p className="mt-4">No projects available.</p>
+        <p className="mt-4 text-center text-gray-500 text-lg">No projects available.</p>
       ) : (
         projects.map((project) => (
-          <div key={project._id} className="mt-6 bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold">{project.name}</h3>
-            <p className="text-sm text-gray-600">{project.description}</p>
-
-            <h4 className="mt-4 font-semibold">Create Task for {project.name}</h4>
-
-            <form onSubmit={(e) => handleTaskSubmit(e, project._id)} className="mt-4">
-              <input 
-                type="text" 
-                name="title" 
-                placeholder="Task Title" 
-                className="input-field" 
-                value={formData[project._id]?.title || ""} 
-                onChange={(e) => handleInputChange(e, project._id)} 
-                required 
-              />
+          <motion.div 
+            key={project._id} 
+            className="mt-8 bg-white p-6 rounded-2xl shadow-2xl border border-gray-300  hover:shadow-3xl relative overflow-hidden"
+            initial={{ opacity: 0, y: 30 }} 
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-100 via-white to-gray-300 rounded-2xl shadow-inner"></div>
+            <div className="relative z-10">
+              <h3 className="text-3xl font-bold text-gray-900 border-b-2 pb-3 mb-4 text-center">{project.name}</h3>
+              <p className="text-lg text-gray-700 mb-6 text-center italic">{project.description}</p>
+    
+              <h4 className="font-semibold text-xl text-gray-800 mb-2 border-b pb-2">Create Task for {project.name}</h4>
+              <form onSubmit={(e) => handleTaskSubmit(e, project._id)} className="mt-4 space-y-4 bg-gray-50 p-4 rounded-xl shadow-md">
+                <input 
+                  type="text" 
+                  name="title" 
+                  placeholder="Task Title" 
+                  className="border rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500" 
+                  value={formData[project._id]?.title || ""} 
+                  onChange={(e) => handleInputChange(e, project._id)} 
+                  required 
+                />
+                
+                <textarea 
+                  name="description" 
+                  placeholder="Task Description" 
+                  className="border rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500" 
+                  value={formData[project._id]?.description || ""} 
+                  onChange={(e) => handleInputChange(e, project._id)} 
+                  required 
+                />
+    
+                <input 
+                  type="date" 
+                  name="dueDate" 
+                  className="border rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500" 
+                  value={formData[project._id]?.dueDate || ""} 
+                  onChange={(e) => handleInputChange(e, project._id)} 
+                  required 
+                />
+    
+                <div className="grid grid-cols-2 gap-4">
+                  <select 
+                    name="priority" 
+                    className="border rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500" 
+                    value={formData[project._id]?.priority || "Low"} 
+                    onChange={(e) => handleInputChange(e, project._id)} 
+                    required
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+    
+                  <select 
+                    name="complexity" 
+                    className="border rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500" 
+                    value={formData[project._id]?.complexity || "Simple"} 
+                    onChange={(e) => handleInputChange(e, project._id)} 
+                    required
+                  >
+                    <option value="Simple">Simple</option>
+                    <option value="Moderate">Moderate</option>
+                    <option value="Complex">Complex</option>
+                  </select>
+                </div>
+    
+                <motion.button 
+                  type="submit" 
+                  className="bg-indigo-600 text-white py-2 px-6 rounded-xl hover:bg-indigo-700 transition-all" 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Create Task
+                </motion.button>
+              </form>
               
-              <textarea 
-                name="description" 
-                placeholder="Task Description" 
-                className="input-field" 
-                value={formData[project._id]?.description || ""} 
-                onChange={(e) => handleInputChange(e, project._id)} 
-                required 
-              />
-
-              <input 
-                type="date" 
-                name="dueDate" 
-                className="input-field" 
-                value={formData[project._id]?.dueDate || ""} 
-                onChange={(e) => handleInputChange(e, project._id)} 
-                required 
-              />
-
-              {/* Priority Dropdown */}
-              <select 
-                name="priority" 
-                className="input-field" 
-                value={formData[project._id]?.priority || "Low"} 
-                onChange={(e) => handleInputChange(e, project._id)} 
-                required
+              <h4 className="mt-6 font-semibold text-xl text-gray-800 border-b pb-2">Tasks for {project.name}</h4>
+              <motion.button 
+                onClick={() => fetchTasks(project._id)} 
+                className="bg-gray-600 text-white py-2 px-6 rounded-xl hover:bg-gray-700 transition-all mb-4" 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-              </select>
+                Load Tasks
+              </motion.button>
+              {tasks[project._id]?.length > 0 ? (
+              <table className="w-full border-collapse border border-gray-300 rounded-xl overflow-hidden shadow-sm">
+                <thead>
+                  <tr className="bg-gray-100 text-gray-700 text-left">
+                    <th className="border p-3">Title</th>
+                    <th className="border p-3">Description</th>
+                    <th className="border p-3">Due Date</th>
+                    <th className="border p-3">Priority</th>
+                    <th className="border p-3">Complexity</th>
+                    <th className="border p-3">Assigned To</th>
+                    <th className="border p-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tasks[project._id].map((task, index) => (
+                    <tr key={task._id} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                      <td className="border p-3">{task.title}</td>
+                      <td className="border p-3">{task.description}</td>
+                      <td className="border p-3">{new Date(task.dueDate).toDateString()}</td>
+                      <td className={`border p-3 font-semibold ${task.priority === 'High' ? 'text-red-500' : task.priority === 'Medium' ? 'text-yellow-500' : 'text-green-500'}`}>{task.priority}</td>
+                      <td className="border p-3">{task.complexity}</td>
+                      <td className="border p-3">{task.assignedMember?.name || "Unassigned"}</td>
+                      <td className="border p-3 text-center">
+                        <button 
+  onClick={() => handleDeleteTask(task._id, project._id)} 
+  className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition duration-200"
+>
+  Delete
+</button>
 
-              {/* Complexity Dropdown */}
-              <select 
-                name="complexity" 
-                className="input-field" 
-                value={formData[project._id]?.complexity || "Simple"} 
-                onChange={(e) => handleInputChange(e, project._id)} 
-                required
-              >
-                <option value="Simple">Simple</option>
-                <option value="Moderate">Moderate</option>
-                <option value="Complex">Complex</option>
-              </select>
-
-              <button type="submit" className="btn-primary mt-4">Create Task</button>
-            </form>
-
-            <h4 className="mt-6 font-semibold">Tasks for {project.name}</h4>
-            <button onClick={() => fetchTasks(project._id)} className="btn-secondary mb-4">Load Tasks</button>
-            {tasks[project._id]?.length > 0 ? (
-              <ul>
-                {tasks[project._id].map((task) => (
-                  <li key={task._id} className="bg-gray-100 p-4 rounded-lg mb-2">
-                    <h5 className="font-semibold">{task.title}</h5>
-                    <p>{task.description}</p>
-                    <p className="text-sm">Due: {new Date(task.dueDate).toDateString()}</p>
-                    <p className="text-sm">Priority: {task.priority}, Complexity: {task.complexity}</p>
-                    <p className="text-sm">Assigned to: {task.assignedMember?.name || "Unassigned"}</p>
-                  </li>
-                ))}
-              </ul>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             ) : (
-              <p className="text-sm text-gray-500">No tasks available.</p>
+              <p className="text-sm text-gray-500 mt-2">No tasks available.</p>
             )}
-          </div>
+            </div>
+          </motion.div>
         ))
       )}
     </div>
   );
-}
+};
