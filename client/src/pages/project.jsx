@@ -119,59 +119,108 @@ export default function Project() {
   
 
   return (
-    <div className="container mx-auto p-6">
-      <form onSubmit={handleSubmit} className="mt-6 bg-white p-6 rounded-lg shadow-md">
-        <input type="text" placeholder="Project Name" className="input-field" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
-        <textarea placeholder="Description" className="input-field" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
-        <input type="date" className="input-field" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} required />
-        <input type="date" className="input-field" value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} required />
-        <button type="submit" className="btn-primary">Create Project</button>
+    <div className="container mx-auto p-6 pt-16">
+      <form onSubmit={handleSubmit} className="mt-6 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+        <h3 className="text-xl font-semibold mb-4">Create New Project</h3>
+        <input 
+          type="text" 
+          placeholder="Project Name" 
+          className="input-field border rounded-lg p-2 w-full" 
+          value={formData.name} 
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+          required 
+        />
+        <textarea 
+          placeholder="Description" 
+          className="input-field border rounded-lg p-2 w-full" 
+          value={formData.description} 
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
+          required 
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <input 
+            type="date" 
+            className="input-field border rounded-lg p-2 w-full" 
+            value={formData.startDate} 
+            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} 
+            required 
+          />
+          <input 
+            type="date" 
+            className="input-field border rounded-lg p-2 w-full" 
+            value={formData.endDate} 
+            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} 
+            required 
+          />
+        </div>
+        <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 mt-4">Create Project</button>
       </form>
-      <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold">Assign Team Members</h3>
-        <select onChange={(e) => setSelectedProject(e.target.value)} className="input-field">
+  
+      <div className="mt-6 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+        <h3 className="text-lg font-semibold mb-4">Assign Team Members</h3>
+        <select onChange={(e) => setSelectedProject(e.target.value)} className="input-field border rounded-lg p-2 w-full">
           <option value="">Select Project</option>
           {projects.map((project) => (
             <option key={project._id} value={project._id}>{project.name}</option>
           ))}
         </select>
-        <div className="mt-2">
-          <h4 className="font-semibold">Select Members</h4>
+        <div className="mt-4">
+          <h4 className="font-semibold mb-2">Select Members</h4>
           {teamMembers.map((member) => (
-            <div key={member._id} className="flex items-center">
-              <input type="checkbox" value={member._id} onChange={(e) => {
-                if (e.target.checked) {
-                  setSelectedMembers([...selectedMembers, member._id]);
-                } else {
-                  setSelectedMembers(selectedMembers.filter((id) => id !== member._id));
-                }
-              }} />
-              <label className="ml-2">{member.name} ({member.email})</label>
+            <div key={member._id} className="flex items-center mb-2">
+              <input 
+                type="checkbox" 
+                value={member._id} 
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedMembers([...selectedMembers, member._id]);
+                  } else {
+                    setSelectedMembers(selectedMembers.filter((id) => id !== member._id));
+                  }
+                }}
+                className="mr-2"
+              />
+              <label>{member.name} ({member.email})</label>
             </div>
           ))}
         </div>
-        <button onClick={assignMembersToProject} className="btn-primary mt-4">Assign Members</button>
+        <button onClick={assignMembersToProject} className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 mt-4">Assign Members</button>
       </div>
+  
       <h3 className="text-xl font-semibold mt-6">All Projects</h3>
-      <ul className="mt-4">
-        {projects.map((project) => (
-          <li key={project._id} className="bg-gray-100 p-4 rounded-lg mb-2">
-            <h4 className="font-semibold">{project.name}</h4>
-            <p>{project.description}</p>
-            <p className="text-sm">Start: {new Date(project.startDate).toDateString()} | End: {new Date(project.endDate).toDateString()}</p>
-            <h5 className="mt-2 font-semibold">Assigned Team Members:</h5>
-            {teamAssignments[project._id]?.length > 0 ? (
-              <ul className="ml-4">
-                {teamAssignments[project._id].map((member) => (
-                  <li key={member._id} className="text-sm">{member.name} ({member.email})</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-gray-500">No team members assigned.</p>
-            )}
-          </li>
-        ))}
-      </ul>
+      <table className="w-full border-collapse border border-gray-300 mt-4">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border p-2">Project Name</th>
+            <th className="border p-2">Description</th>
+            <th className="border p-2">Start Date</th>
+            <th className="border p-2">End Date</th>
+            <th className="border p-2">Team Members</th>
+          </tr>
+        </thead>
+        <tbody>
+          {projects.map((project) => (
+            <tr key={project._id} className="border">
+              <td className="border p-2">{project.name}</td>
+              <td className="border p-2">{project.description}</td>
+              <td className="border p-2">{new Date(project.startDate).toDateString()}</td>
+              <td className="border p-2">{new Date(project.endDate).toDateString()}</td>
+              <td className="border p-2">
+                {teamAssignments[project._id]?.length > 0 ? (
+                  <ul className="list-disc ml-4">
+                    {teamAssignments[project._id].map((member) => (
+                      <li key={member._id} className="text-sm">{member.name} ({member.email})</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-500">No team members assigned.</p>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
+  
 }
