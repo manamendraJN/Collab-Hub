@@ -37,7 +37,7 @@ export default function TeamMember() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 pt-16">
       <h2 className="text-2xl font-bold">Manage Team Members</h2>
       <div className="flex space-x-4 mt-4">
         <input 
