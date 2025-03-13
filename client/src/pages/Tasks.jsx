@@ -4,12 +4,24 @@ import { motion } from 'framer-motion';
 
 export default function Task() {
   const [projects, setProjects] = useState([]);
+  const [filteredProjects, setFilteredProjects] = useState([]);
   const [tasks, setTasks] = useState({});
   const [formData, setFormData] = useState({}); // Store form data per project
+  const [teamMembers, setTeamMembers] = useState([]); // Store team members for editing
+  const [searchTerm, setSearchTerm] = useState(""); // Store search term
 
   useEffect(() => {
     fetchProjects();
+    fetchTeamMembers();
   }, []);
+
+  useEffect(() => {
+    setFilteredProjects(
+      projects.filter((project) =>
+        project.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [searchTerm, projects]);
 
   const fetchProjects = async () => {
     try {
@@ -18,6 +30,7 @@ export default function Task() {
       });
       const data = await res.json();
       setProjects(data.projects);
+      setFilteredProjects(data.projects);
 
       // Initialize formData for each project
       const initialForms = {};
@@ -33,6 +46,18 @@ export default function Task() {
       setFormData(initialForms);
     } catch (error) {
       console.error("Error fetching projects", error);
+    }
+  };
+
+  const fetchTeamMembers = async () => {
+    try {
+      const res = await fetch("/api/team-members", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const data = await res.json();
+      setTeamMembers(data.teamMembers);
+    } catch (error) {
+      console.error("Error fetching team members", error);
     }
   };
 
@@ -113,14 +138,44 @@ export default function Task() {
       toast.error("Something went wrong. Please try again.");
     }
   };
-  
 
-    return (
-    <div className="max-w-6xl mx-auto p-6 pt-16">
-      {projects.length === 0 ? (
+  const handleEditMember = async (taskId, projectId, newMemberId) => {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ assignedMember: newMemberId }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Team member updated successfully!");
+        fetchTasks(projectId);
+      } else {
+        toast.error(data.message || "Failed to update team member");
+      }
+    } catch (error) {
+      console.error("Error updating team member:", error);
+      toast.error("Something went wrong. Please try again.");
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-6 pt-24">
+      <input
+        type="text"
+        placeholder="Search projects..."
+        className="border rounded-xl px-4 py-2 w-full mb-4"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+      {filteredProjects.length === 0 ? (
         <p className="mt-4 text-center text-gray-500 text-lg">No projects available.</p>
       ) : (
-        projects.map((project) => (
+        filteredProjects.map((project) => (
           <motion.div 
             key={project._id} 
             className="mt-8 bg-white p-6 rounded-2xl shadow-2xl border border-gray-300  hover:shadow-3xl relative overflow-hidden"
@@ -229,15 +284,27 @@ export default function Task() {
                       <td className="border p-3">{new Date(task.dueDate).toDateString()}</td>
                       <td className={`border p-3 font-semibold ${task.priority === 'High' ? 'text-red-500' : task.priority === 'Medium' ? 'text-yellow-500' : 'text-green-500'}`}>{task.priority}</td>
                       <td className="border p-3">{task.complexity}</td>
-                      <td className="border p-3">{task.assignedMember?.name || "Unassigned"}</td>
+                      <td className="border p-3">
+                        <select
+                          value={task.assignedMember?._id || ""}
+                          onChange={(e) => handleEditMember(task._id, project._id, e.target.value)}
+                          className="border rounded-lg p-2"
+                        >
+                          <option value="">Unassigned</option>
+                          {teamMembers.map((member) => (
+                            <option key={member._id} value={member._id}>
+                              {member.name} ({member.email})
+                            </option>
+                          ))}
+                        </select>
+                      </td>
                       <td className="border p-3 text-center">
                         <button 
-  onClick={() => handleDeleteTask(task._id, project._id)} 
-  className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition duration-200"
->
-  Delete
-</button>
-
+                          onClick={() => handleDeleteTask(task._id, project._id)} 
+                          className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition duration-200"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))}
