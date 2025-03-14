@@ -8,7 +8,7 @@ export default function Task() {
   const [tasks, setTasks] = useState({});
   const [formData, setFormData] = useState({});
   const [teamMembers, setTeamMembers] = useState([]);
-  const [allocatedMembers, setAllocatedMembers] = useState([]); // Store allocated team members for the specific project
+  const [allocatedMembers, setAllocatedMembers] = useState({}); // Store allocated team members for the specific project
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -68,7 +68,10 @@ export default function Task() {
       });
       const data = await res.json();
       if (data.success) {
-        setAllocatedMembers(data.team.members); // Assuming the response structure
+        setAllocatedMembers((prev) => ({
+          ...prev,
+          [projectId]: data.team.members, // Set allocated members for the specific project
+        }));
       }
     } catch (error) {
       console.error("Error fetching allocated team members", error);
@@ -86,7 +89,7 @@ export default function Task() {
     } catch (error) {
       console.error("Error fetching tasks", error);
     }
-  };
+  };  
 
   const handleTaskSubmit = async (e, projectId) => {
     e.preventDefault();
@@ -317,18 +320,18 @@ export default function Task() {
                       <td className={`border p-3 font-semibold ${task.priority === 'High' ? 'text-red-500' : task.priority === 'Medium' ? 'text-yellow-500' : 'text-green-500'}`}>{task.priority}</td>
                       <td className="border p-3">{task.complexity}</td>
                       <td className="border p-3">
-                        <select
-                          value={task.assignedMember?._id || ""}
-                          onChange={(e) => handleEditMember(task._id, project._id, e.target.value)}
-                          className="border rounded-lg p-2"
-                        >
-                          <option value="">Unassigned</option>
-                          {allocatedMembers.map((member) => ( // Use allocatedMembers instead of teamMembers
-                            <option key={member._id} value={member._id}>
-                              {member.name} ({member.email})
-                            </option>
-                          ))}
-                        </select>
+                      <select
+                        value={task.assignedMember?._id || ""}
+                        onChange={(e) => handleEditMember(task._id, project._id, e.target.value)}
+                        className="border rounded-lg p-2"
+                      >
+                        <option value="">Unassigned</option>
+                        {allocatedMembers[project._id]?.map((member) => ( // Use allocatedMembers for the specific project
+                          <option key={member._id} value={member._id}>
+                            {member.name} ({member.email})
+                          </option>
+                        ))}
+                      </select>
                       </td>
                       <td className="border p-3 text-center">
                         <button 
