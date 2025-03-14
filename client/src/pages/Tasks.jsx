@@ -140,6 +140,8 @@ export default function Task() {
   };
 
   const handleEditMember = async (taskId, projectId, newMemberId) => {
+    if (!window.confirm("Are you sure you want to change the team member?")) return;
+  
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PUT",
@@ -149,7 +151,7 @@ export default function Task() {
         },
         body: JSON.stringify({ assignedMember: newMemberId }),
       });
-
+  
       const data = await res.json();
       if (data.success) {
         toast.success("Team member updated successfully!");
@@ -162,6 +164,7 @@ export default function Task() {
       toast.error("Something went wrong. Please try again.");
     }
   };
+  
 
   return (
     <div className="max-w-6xl mx-auto p-6 pt-24">
@@ -189,59 +192,74 @@ export default function Task() {
               <p className="text-lg text-gray-700 mb-6 text-center italic">{project.description}</p>
     
               <h4 className="font-semibold text-xl text-gray-800 mb-2 border-b pb-2">Create Task for {project.name}</h4>
-              <form onSubmit={(e) => handleTaskSubmit(e, project._id)} className="mt-4 space-y-4 bg-gray-50 p-4 rounded-xl shadow-md">
-                <input 
-                  type="text" 
-                  name="title" 
-                  placeholder="Task Title" 
-                  className="border rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500" 
-                  value={formData[project._id]?.title || ""} 
-                  onChange={(e) => handleInputChange(e, project._id)} 
-                  required 
-                />
+              <form onSubmit={(e) => handleTaskSubmit(e, project._id)} className="mt-4 space-y-4 bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200">
+                <div className="space-y-2">
+                  <label className="block text-gray-700 font-medium">Task Title</label>
+                  <input 
+                    type="text" 
+                    name="title" 
+                    placeholder="Task Title" 
+                    className="border rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500" 
+                    value={formData[project._id]?.title || ""} 
+                    onChange={(e) => handleInputChange(e, project._id)} 
+                    required 
+                  />
+                </div>
                 
-                <textarea 
-                  name="description" 
-                  placeholder="Task Description" 
-                  className="border rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500" 
-                  value={formData[project._id]?.description || ""} 
-                  onChange={(e) => handleInputChange(e, project._id)} 
-                  required 
-                />
+                <div className="space-y-2">
+                  <label className="block text-gray-700 font-medium">Task Description</label>
+                  <textarea 
+                    name="description" 
+                    placeholder="Task Description" 
+                    className="border rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500" 
+                    value={formData[project._id]?.description || ""} 
+                    onChange={(e) => handleInputChange(e, project._id)} 
+                    required 
+                  />
+                </div>
     
-                <input 
-                  type="date" 
-                  name="dueDate" 
-                  className="border rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500" 
-                  value={formData[project._id]?.dueDate || ""} 
-                  onChange={(e) => handleInputChange(e, project._id)} 
-                  required 
-                />
+                <div className="space-y-2">
+                  <label className="block text-gray-700 font-medium">Due Date</label>
+                  <input 
+                    type="date" 
+                    name="dueDate" 
+                    className="border rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500" 
+                    value={formData[project._id]?.dueDate || ""} 
+                    onChange={(e) => handleInputChange(e, project._id)} 
+                    required 
+                  />
+                </div>
     
                 <div className="grid grid-cols-2 gap-4">
-                  <select 
-                    name="priority" 
-                    className="border rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500" 
-                    value={formData[project._id]?.priority || "Low"} 
-                    onChange={(e) => handleInputChange(e, project._id)} 
-                    required
-                  >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                  </select>
+                  <div className="space-y-2">
+                    <label className="block text-gray-700 font-medium">Priority</label>
+                    <select 
+                      name="priority" 
+                      className="border rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500" 
+                      value={formData[project._id]?.priority || "Low"} 
+                      onChange={(e) => handleInputChange(e, project._id)} 
+                      required
+                    >
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                    </select>
+                  </div>
     
-                  <select 
-                    name="complexity" 
-                    className="border rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500" 
-                    value={formData[project._id]?.complexity || "Simple"} 
-                    onChange={(e) => handleInputChange(e, project._id)} 
-                    required
-                  >
-                    <option value="Simple">Simple</option>
-                    <option value="Moderate">Moderate</option>
-                    <option value="Complex">Complex</option>
-                  </select>
+                  <div className="space-y-2">
+                    <label className="block text-gray-700 font-medium">Complexity</label>
+                    <select 
+                      name="complexity" 
+                      className="border rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500" 
+                      value={formData[project._id]?.complexity || "Simple"} 
+                      onChange={(e) => handleInputChange(e, project._id)} 
+                      required
+                    >
+                      <option value="Simple">Simple</option>
+                      <option value="Moderate">Moderate</option>
+                      <option value="Complex">Complex</option>
+                    </select>
+                  </div>
                 </div>
     
                 <motion.button 
