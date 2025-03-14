@@ -3,6 +3,7 @@ import Project from "../models/project.model.js";
 import Team from "../models/team.model.js";
 
 // ✅ Create a new task with Smart Workload Balancer
+
 export const createTask = async (req, res) => {
   try {
     const { title, description, dueDate, priority, complexity, project } = req.body;
@@ -22,29 +23,21 @@ export const createTask = async (req, res) => {
     const teamMembers = team.members; // Extracting member IDs
 
     // Define priority weights
-    const priorityWeights = { Low: 1, Medium: 3, High: 5 };
+    const priorityWeights = { Low: 1, Medium: 3, High: 4 }; // Updated weights for High priority
 
     // Fetch workload for each member
     const workloadData = await Promise.all(
       teamMembers.map(async (memberId) => {
         const totalTasks = await Task.countDocuments({ assignedMember: memberId });
-        const urgentTasks = await Task.countDocuments({ assignedMember: memberId, dueDate: { $lte: new Date() } });
-        const complexTasks = await Task.countDocuments({ assignedMember: memberId, complexity: "Complex" });
-
-        // Fetch task priorities
-        const priorityCounts = await Task.aggregate([
-          { $match: { assignedMember: memberId } },
-          { $group: { _id: "$priority", count: { $sum: 1 } } }
-        ]);
-
-        // Calculate priority score
-        let priorityScore = 0;
-        priorityCounts.forEach(({ _id, count }) => {
-          priorityScore += (priorityWeights[_id] || 1) * count;
+        const urgentTasks = await Task.countDocuments({
+          assignedMember: memberId,
+          dueDate: { $lte: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) } // Due in next 3 days
         });
+        const complexTasks = await Task.countDocuments({ assignedMember: memberId, complexity: "Complex" });
+        const highPriorityTasks = await Task.countDocuments({ assignedMember: memberId, priority: "High" });
 
         // Workload Score Formula (Lower is better)
-        const workloadScore = (totalTasks * 2) + (urgentTasks * 3) + (complexTasks * 5) + priorityScore;
+        const workloadScore = (totalTasks * 2) + (urgentTasks * 3) + (complexTasks * 5) + (highPriorityTasks * 4);
 
         return { member: memberId, workloadScore };
       })
@@ -79,7 +72,6 @@ export const createTask = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-
 
 
 // ✅ Get all tasks
