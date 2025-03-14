@@ -6,9 +6,10 @@ export default function Task() {
   const [projects, setProjects] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [tasks, setTasks] = useState({});
-  const [formData, setFormData] = useState({}); // Store form data per project
-  const [teamMembers, setTeamMembers] = useState([]); // Store team members for editing
-  const [searchTerm, setSearchTerm] = useState(""); // Store search term
+  const [formData, setFormData] = useState({});
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [allocatedMembers, setAllocatedMembers] = useState([]); // Store allocated team members for the specific project
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchProjects();
@@ -32,7 +33,6 @@ export default function Task() {
       setProjects(data.projects);
       setFilteredProjects(data.projects);
 
-      // Initialize formData for each project
       const initialForms = {};
       data.projects.forEach((project) => {
         initialForms[project._id] = { 
@@ -61,6 +61,20 @@ export default function Task() {
     }
   };
 
+  const fetchAllocatedMembers = async (projectId) => {
+    try {
+      const res = await fetch(`/api/team/${projectId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAllocatedMembers(data.team.members); // Assuming the response structure
+      }
+    } catch (error) {
+      console.error("Error fetching allocated team members", error);
+    }
+  };
+
   const fetchTasks = async (projectId) => {
     try {
       const res = await fetch(`/api/tasks/project/${projectId}`, {
@@ -68,6 +82,7 @@ export default function Task() {
       });
       const data = await res.json();
       setTasks((prev) => ({ ...prev, [projectId]: data.tasks }));
+      fetchAllocatedMembers(projectId); // Fetch allocated members when fetching tasks
     } catch (error) {
       console.error("Error fetching tasks", error);
     }
@@ -164,7 +179,6 @@ export default function Task() {
       toast.error("Something went wrong. Please try again.");
     }
   };
-  
 
   return (
     <div className="max-w-6xl mx-auto p-6 pt-24">
@@ -309,7 +323,7 @@ export default function Task() {
                           className="border rounded-lg p-2"
                         >
                           <option value="">Unassigned</option>
-                          {teamMembers.map((member) => (
+                          {allocatedMembers.map((member) => ( // Use allocatedMembers instead of teamMembers
                             <option key={member._id} value={member._id}>
                               {member.name} ({member.email})
                             </option>
