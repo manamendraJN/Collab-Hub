@@ -3,7 +3,6 @@ import Project from "../models/project.model.js";
 import Team from "../models/team.model.js";
 
 // ✅ Create a new task with Smart Workload Balancer
-
 export const createTask = async (req, res) => {
   try {
     const { title, description, dueDate, priority, complexity, project } = req.body;
@@ -43,6 +42,9 @@ export const createTask = async (req, res) => {
       })
     );
 
+    // Log the workload scores for each team member
+    console.log("Workload Scores:", workloadData);
+
     // Sort by workloadScore (lowest first)
     workloadData.sort((a, b) => a.workloadScore - b.workloadScore);
 
@@ -72,6 +74,7 @@ export const createTask = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 
 // ✅ Get all tasks
