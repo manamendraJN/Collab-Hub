@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 export default function TeamMember() {
   const [teamMembers, setTeamMembers] = useState([]);
-  const [newMember, setNewMember] = useState({ name: "", email: "", role: "" });
+  const [newMember, setNewMember] = useState({ name: "", email: "", role: "", token: "" }); // Include token
 
   useEffect(() => {
     fetchTeamMembers();
@@ -12,9 +12,9 @@ export default function TeamMember() {
 
   const fetchTeamMembers = async () => {
     try {
-      const token = localStorage.getItem("token"); // Retrieve token from local storage
+      const token = localStorage.getItem("token");
       const { data } = await axios.get("/api/team-members", {
-        headers: { Authorization: `Bearer ${token}` }, // Attach token to request
+        headers: { Authorization: `Bearer ${token}` },
       });
       setTeamMembers(data.teamMembers);
     } catch (error) {
@@ -24,13 +24,13 @@ export default function TeamMember() {
 
   const addTeamMember = async () => {
     try {
-      const token = localStorage.getItem("token"); // Retrieve token from local storage
+      const token = localStorage.getItem("token");
       const { data } = await axios.post("/api/team-members", newMember, {
-        headers: { Authorization: `Bearer ${token}` }, // Attach token to request
+        headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Team member added!");
       setTeamMembers([...teamMembers, data.teamMember]);
-      setNewMember({ name: "", email: "", role: "" });
+      setNewMember({ name: "", email: "", role: "", token: "" }); // Reset form
     } catch (error) {
       toast.error("Error adding team member.");
     }
@@ -59,6 +59,13 @@ export default function TeamMember() {
           placeholder="Role" 
           value={newMember.role} 
           onChange={(e) => setNewMember({ ...newMember, role: e.target.value })} 
+          className="border p-2"
+        />
+        <input 
+          type="text" 
+          placeholder="Token" 
+          value={newMember.token} 
+          onChange={(e) => setNewMember({ ...newMember, token: e.target.value })} 
           className="border p-2"
         />
         <button onClick={addTeamMember} className="bg-blue-500 text-white p-2 rounded">Add</button>
