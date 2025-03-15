@@ -61,6 +61,19 @@ export default function Task() {
     }
   };
 
+  const getSelectStyle = (status) => {
+    switch (status) {
+      case "Pending":
+        return { backgroundColor: "#f0f8ff", color: "#000" }; // Light blue
+      case "In Progress":
+        return { backgroundColor: "#fffacd", color: "#000" }; // Light yellow
+      case "Completed":
+        return { backgroundColor: "#d3ffd3", color: "#000" }; // Light green
+      default:
+        return {};
+    }
+  };
+
   const fetchAllocatedMembers = async (projectId) => {
     try {
       const res = await fetch(`/api/team/${projectId}`, {
@@ -179,6 +192,30 @@ export default function Task() {
       }
     } catch (error) {
       console.error("Error updating team member:", error);
+      toast.error("Something went wrong. Please try again.");
+    }
+  };
+
+  const handleUpdateStatus = async (taskId, newStatus, projectId) => {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+  
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Task status updated successfully!");
+        fetchTasks(projectId); // Refresh tasks to reflect the updated status
+      } else {
+        toast.error(data.message || "Failed to update task status");
+      }
+    } catch (error) {
+      console.error("Error updating task status:", error);
       toast.error("Something went wrong. Please try again.");
     }
   };
@@ -302,13 +339,14 @@ export default function Task() {
               <table className="w-full border-collapse border border-gray-300 rounded-xl overflow-hidden shadow-sm">
                 <thead>
                   <tr className="bg-gray-100 text-gray-700 text-left">
-                    <th className="border p-3">Title</th>
-                    <th className="border p-3">Description</th>
-                    <th className="border p-3">Due Date</th>
-                    <th className="border p-3">Priority</th>
-                    <th className="border p-3">Complexity</th>
-                    <th className="border p-3">Assigned To</th>
-                    <th className="border p-3">Actions</th>
+                    <th className="border p-3 text-center">Title</th>
+                    <th className="border p-3 text-center">Description</th>
+                    <th className="border p-3 text-center">Due Date</th>
+                    <th className="border p-3 text-center">Priority</th>
+                    <th className="border p-3 text-center">Complexity</th>
+                    <th className="border p-3 text-center">Status</th>
+                    <th className="border p-3 text-center">Assigned To</th>
+                    <th className="border p-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -319,7 +357,19 @@ export default function Task() {
                       <td className="border p-3">{new Date(task.dueDate).toDateString()}</td>
                       <td className={`border p-3 font-semibold ${task.priority === 'High' ? 'text-red-500' : task.priority === 'Medium' ? 'text-yellow-500' : 'text-green-500'}`}>{task.priority}</td>
                       <td className="border p-3">{task.complexity}</td>
-                      <td className="border p-3">
+                      <td className="border p-3 text-center">
+                      <select
+                        value={task.status}
+                        onChange={(e) => handleUpdateStatus(task._id, e.target.value, project._id)}
+                        className="border rounded-lg p-2"
+                        style={getSelectStyle(task.status)} // Apply dynamic styles
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                      </select>
+                      </td>
+                      <td className="border p-3 text-center">
                       <select
                         value={task.assignedMember?._id || ""}
                         onChange={(e) => handleEditMember(task._id, project._id, e.target.value)}
