@@ -1,6 +1,8 @@
 import Task from "../models/task.model.js";
 import Project from "../models/project.model.js";
 import Team from "../models/team.model.js";
+import TeamMember from "../models/teamMember.model.js";
+
 
 // ✅ Create a new task with Smart Workload Balancer
 export const createTask = async (req, res) => {
@@ -12,6 +14,8 @@ export const createTask = async (req, res) => {
     if (!existingProject) {
       return res.status(404).json({ success: false, message: "Project not found" });
     }
+
+    
 
     // Fetch team for the given project
     const team = await Team.findOne({ project });
@@ -42,9 +46,6 @@ export const createTask = async (req, res) => {
       })
     );
 
-    // Log the workload scores for each team member
-    console.log("Workload Scores:", workloadData);
-
     // Sort by workloadScore (lowest first)
     workloadData.sort((a, b) => a.workloadScore - b.workloadScore);
 
@@ -67,6 +68,35 @@ export const createTask = async (req, res) => {
     });
 
     await newTask.save();
+
+    // Recalculate workload scores after assignment
+    const updatedWorkloadData = await Promise.all(
+      teamMembers.map(async (memberId) => {
+        const totalTasks = await Task.countDocuments({ assignedMember: memberId });
+        const urgentTasks = await Task.countDocuments({
+          assignedMember: memberId,
+          dueDate: { $lte: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) } // Due in next 3 days
+        });
+        const complexTasks = await Task.countDocuments({ assignedMember: memberId, complexity: "Complex" });
+        const highPriorityTasks = await Task.countDocuments({ assignedMember: memberId, priority: "High" });
+
+        // Workload Score Formula (Lower is better)
+        const workloadScore = (totalTasks * 2) + (urgentTasks * 3) + (complexTasks * 5) + (highPriorityTasks * 4);
+
+        return { member: memberId, workloadScore };
+      })
+    );
+    // Fetch team member names for logging
+    const teamMemberNames = await TeamMember.find({ _id: { $in: teamMembers } }).select('name _id');
+
+    // Map updated workload data to include names
+    const workloadWithNames = updatedWorkloadData.map(data => {
+      const member = teamMemberNames.find(member => member._id.toString() === data.member.toString());
+      return { name: member?.name, workloadScore: data.workloadScore };
+    });
+
+    // Log the updated workload scores after assignment
+    console.log("Updated Workload Scores after assignment:", workloadWithNames);
 
     res.status(201).json({ success: true, message: "Task created successfully", task: newTask });
   } catch (error) {
