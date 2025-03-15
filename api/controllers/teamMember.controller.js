@@ -3,14 +3,14 @@ import TeamMember from "../models/teamMember.model.js";
 // Create a Team Member
 export const createTeamMember = async (req, res) => {
   try {
-    const { name, email, role } = req.body;
+    const { name, email, role, token } = req.body; // Include token in the request body
     const existingMember = await TeamMember.findOne({ email });
 
     if (existingMember) {
       return res.status(400).json({ success: false, message: "Member already exists!" });
     }
 
-    const newMember = new TeamMember({ name, email, role });
+    const newMember = new TeamMember({ name, email, role, token }); // Save token with the member
     await newMember.save();
 
     res.status(201).json({ success: true, message: "Team member created successfully!", teamMember: newMember });
