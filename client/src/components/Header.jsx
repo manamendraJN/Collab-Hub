@@ -15,12 +15,15 @@ export default function Header() {
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 w-full z-50 bg-white shadow-xl border-b border-gray-200
+      className="fixed top-0 left-0 w-full z-50 bg-slate-300 shadow-xl border-b 
                  py-4 px-8 flex justify-between items-center "
     >
       {/* Logo */}
       <Link to="/dashboard">
-        <h1 className="text-2xl font-extrabold text-indigo-600 tracking-wide drop-shadow-md">Remote Collab</h1>
+      <h1 className='font-bold text-sm sm:text-xl flex flex-wrap'>
+        <span className='text-slate-500'>Remote</span>
+        <span className='text-slate-700'>Collab</span>
+      </h1>
       </Link>
 
       {/* Navigation Links */}

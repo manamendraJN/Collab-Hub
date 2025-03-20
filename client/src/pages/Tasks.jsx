@@ -322,7 +322,7 @@ export default function Task() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  Create Task
+                  + Create Task
                 </motion.button>
               </form>
               
