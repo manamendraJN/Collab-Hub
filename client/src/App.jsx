@@ -13,6 +13,11 @@ import Project from './pages/project.jsx'
 import Teams from './pages/Teams.jsx';
 import Messages from './pages/Messages.jsx';
 import Tasks from './pages/Tasks.jsx';
+import CreateProject from './pages/CreateProject.jsx';
+import ProjectDetails from './pages/ProjectDetails.jsx';
+import ProjectEdit from './pages/ProjectEdit.jsx';
+
+
 
 function AppContent() {
   const location = useLocation();
@@ -32,8 +37,15 @@ function AppContent() {
         <Route path="/teams" element = {<Teams/>} />
         <Route path="/messages" element = {<Messages/>} />
         <Route path="/tasks" element = {<Tasks/>} />
+        <Route path="/create-project" element={<CreateProject />} />
+        <Route path="/project/:id" element={<ProjectDetails />} />
+        <Route path="/edit-project/:id" element={<ProjectEdit />} />
+
+
+
+
         
-      </Routes>
+        </Routes>
     </>
   );
 }
