@@ -52,3 +52,17 @@ export const deleteProject = async (req, res) => {
     res.status(500).json({ success: false, message: "Error deleting project", error: error.message });
   }
 };
+
+export const getProjectById = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id).populate("createdBy", "name email");
+
+    if (!project) {
+      return res.status(404).json({ success: false, message: "Project not found" });
+    }
+
+    res.status(200).json({ success: true, project });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error fetching project", error: error.message });
+  }
+};

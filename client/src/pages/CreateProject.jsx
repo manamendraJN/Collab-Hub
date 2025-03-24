@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function Project() {
@@ -12,6 +13,7 @@ export default function Project() {
     category: "development",
   });
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProjects();
@@ -63,6 +65,7 @@ export default function Project() {
         toast.success("Project created!");
         setFormData({ name: "", description: "", startDate: "", endDate: "", status: "Pending", category: "development" });
         fetchProjects();
+        navigate("/project");
       }
     } catch (error) {
       console.error("Error creating project", error);
