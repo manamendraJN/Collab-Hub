@@ -19,8 +19,18 @@ const getProjectStyle = (category) => {
   return styles[category.toLowerCase()] || styles.general;
 };
 
+// Function to check if a project can be deleted (due date is at least one month ago)
+const canDeleteProject = (endDate) => {
+  const currentDate = new Date();
+  const dueDate = new Date(endDate);
+  const diffTime = currentDate - dueDate;
+  const diffMonths = diffTime / (1000 * 60 * 60 * 24 * 30); // Convert milliseconds to months
+  return diffMonths > 1;
+};
+
 export default function Project() {
   const [projects, setProjects] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(""); // Error message state
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,7 +49,13 @@ export default function Project() {
     }
   };
 
-  const deleteProject = async (projectId) => {
+  const deleteProject = async (projectId, endDate) => {
+    // Check if the project can be deleted based on due date
+    if (!canDeleteProject(endDate)) {
+      setErrorMessage("You cannot delete this project because its due date is within the last month.");
+      return;
+    }
+
     try {
       const res = await fetch(`/api/projects/${projectId}`, {
         method: "DELETE",
@@ -47,6 +63,7 @@ export default function Project() {
       });
       if (res.ok) {
         setProjects(projects.filter((project) => project._id !== projectId));
+        setErrorMessage(""); // Clear any previous error message
       } else {
         console.error("Error deleting project");
       }
@@ -108,7 +125,7 @@ export default function Project() {
             >
               <h4 className="font-semibold text-lg flex items-center">{emoji} {project.name}</h4>
               <p className="text-sm text-gray-700 mt-2">{project.description}</p>
-              <p className="text-xs text-gray-500 mt-1">Due: {project.endDate}</p>
+              <p className="text-xs text-gray-500 mt-1">Due: {new Date(project.endDate).toLocaleDateString()}</p>
               <div className="mt-4 flex justify-between items-center">
                 <button
                   className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
@@ -123,7 +140,7 @@ export default function Project() {
                   className="text-red-600 hover:text-red-800 transition-colors duration-200"
                   onClick={(e) => {
                     e.stopPropagation(); // Prevents navigating when clicking delete
-                    deleteProject(project._id);
+                    deleteProject(project._id, project.endDate);
                   }}
                 >
                   Delete
@@ -139,6 +156,13 @@ export default function Project() {
   return (
     <div className="container mx-auto p-8">
       <h2 className="text-4xl font-semibold mb-6 text-gray-800">📁 Projects Overview</h2>
+
+      {/* Error Message */}
+      {errorMessage && (
+        <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-4">
+          {errorMessage}
+        </div>
+      )}
 
       {/* Charts */}
       <div className="my-8 grid grid-cols-1 md:grid-cols-2 gap-8">
