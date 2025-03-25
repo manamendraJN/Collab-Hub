@@ -16,6 +16,7 @@ import TeamMember from "./pages/TeamMember.jsx";
 
 function AppContent() {
   const location = useLocation();
+
   return (
     <>
       <ToastContainer />
@@ -35,6 +36,7 @@ function AppContent() {
     </>
   );
 }
+
 
 export default function App() {
   return (
