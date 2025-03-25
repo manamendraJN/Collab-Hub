@@ -11,7 +11,6 @@ import Profile from './pages/profile.jsx';
 import Dashboard from './pages/dashboard.jsx';
 import Project from './pages/project.jsx'
 import Teams from './pages/Teams.jsx';
-import Messages from './pages/Messages.jsx';
 import Tasks from './pages/Tasks.jsx';
 
 function AppContent() {
@@ -31,8 +30,6 @@ function AppContent() {
         <Route path="/project" element={<Project/>} />
         <Route path="/teams" element = {<Teams/>} />
         <Route path="/messages" element = {<Messages/>} />
-        <Route path="/tasks" element = {<Tasks/>} />
-        
       </Routes>
     </>
   );
