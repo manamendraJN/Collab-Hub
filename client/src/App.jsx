@@ -11,6 +11,7 @@ import Profile from './pages/profile.jsx';
 import Dashboard from './pages/dashboard.jsx';
 import Project from './pages/project.jsx'
 import Teams from './pages/Teams.jsx';
+import Messages from './pages/Messages.jsx';
 import Tasks from './pages/Tasks.jsx';
 
 function AppContent() {
