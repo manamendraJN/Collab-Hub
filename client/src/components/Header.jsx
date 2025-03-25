@@ -1,81 +1,87 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Menu, X, LayoutDashboard, ClipboardList, Users, MessageSquare, User, Info } from "lucide-react";
 
-export default function Header() {
+export default function Layout({ children }) {
   const location = useLocation();
+  const [isOpen, setIsOpen] = useState(true); // Sidebar open by default
 
-  // Hide the navbar on the sign-up and landing pages
+  // Hide sidebar on specific pages
   if (location.pathname === "/sign-up" || location.pathname === "/") {
     return null;
   }
 
-  return (
-    <motion.nav
-      initial={{ y: -50, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 w-full z-50 bg-slate-300 shadow-xl border-b 
-                 py-4 px-8 flex justify-between items-center "
-    >
-      {/* Logo */}
-      <Link to="/dashboard">
-      <h1 className='font-bold text-sm sm:text-xl flex flex-wrap'>
-        <span className='text-slate-500'>Remote</span>
-        <span className='text-slate-700'>Collab</span>
-      </h1>
-      </Link>
+  const menuItems = [
+    { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard /> },
+    { name: "Projects", path: "/project", icon: <ClipboardList /> },
+    { name: "Tasks", path: "/tasks", icon: <ClipboardList /> },
+    { name: "Team Members", path: "/team-members", icon: <Users /> },
+    { name: "Messages", path: "/messages", icon: <MessageSquare /> },
+    { name: "Profile", path: "/profile", icon: <User /> },
+    { name: "About", path: "/about", icon: <Info /> },
+  ];
 
-      {/* Navigation Links */}
-      <div className="hidden md:flex space-x-6">
-        {[
-          { name: "Dashboard", path: "/dashboard" },
-          { name: "Projects", path: "/project" },
-          { name: "Tasks", path: "/tasks" },
-          { name: "Team Members", path: "/team-members" },
-          { name: "Messages", path: "/messages" },
-          { name: "Profile", path: "/profile" },
-          { name: "About", path: "/about" },
-        ].map((item, index) => (
+  return (
+    <div className="flex">
+      {/* Sidebar */}
+      <motion.aside
+        initial={{ x: -250, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className={`fixed top-0 left-0 h-full bg-slate-100 shadow-xl border-r z-[999]
+                   ${isOpen ? "w-64" : "w-16"} transition-all`}
+      >
+        {/* Sidebar Toggle Button */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="absolute top-5 left-5 bg-gray-800 text-white p-2 rounded-full"
+        >
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+
+        {/* Logo */}
+        <Link to="/dashboard" className="text-center mt-16 mb-6 block">
+          <h1 className={`font-bold text-xl transition-all ${isOpen ? "block" : "hidden"}`}>
+            <span className="text-slate-500">Remote</span>
+            <span className="text-slate-700">Collab</span>
+          </h1>
+        </Link>
+
+        {/* Navigation Links */}
+        {menuItems.map((item, index) => (
           <Link
             key={index}
             to={item.path}
-            className="relative text-gray-700 font-medium hover:text-indigo-600 transition duration-300 group"
+            className="flex items-center space-x-3 text-gray-700 font-medium hover:text-indigo-600
+                       transition duration-300 group px-4 py-2 rounded-lg"
           >
-            {item.name}
-            <span className="absolute left-0 bottom-[-3px] w-0 h-[2px] bg-indigo-500 transition-all duration-300 group-hover:w-full"></span>
+            <div className="w-10 flex justify-center">{item.icon}</div>
+            <span className={`transition-all ${isOpen ? "block" : "hidden"}`}>{item.name}</span>
           </Link>
         ))}
-      </div>
+      </motion.aside>
 
-      {/* CTA Buttons */}
-      <div className="hidden md:flex items-center space-x-4">
-        {/* <Link to="/sign-in">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-5 py-2 border border-indigo-500 text-indigo-600 rounded-xl hover:bg-indigo-500 hover:text-white transition-all shadow-md"
-          >
-            Login
-          </motion.button>
-        </Link>
-        <Link to="/sign-up">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-md"
-          >
-            Register
-          </motion.button>
-        </Link> */}
-      </div>
+      {/* Main Content */}
+      <div className={`flex-1 min-h-screen transition-all ${isOpen ? "ml-64" : "ml-16"} p-6 bg-gray-100`}>
+        {/* Welcome Banner */}
+        <motion.div
+  initial={{ opacity: 0, y: -20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5 }}
+  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-md flex justify-between items-center shadow-md text-white
+             sticky top-0 z-50 bg-opacity-90 backdrop-blur-md"
+>
+  <div>
+    <h2 className="text-lg font-semibold">Welcome Back!</h2>
+    <p className="text-sm">Keep pushing forward—your projects need you!</p>
+  </div>
+  <div className="text-sm italic">"Success is the sum of small efforts, repeated."</div>
+</motion.div>
 
-      {/* Mobile Menu */}
-      <div className="md:hidden">
-        <button className="text-gray-700 hover:text-indigo-600 transition">
-          ☰
-        </button>
+        {/* Page Content */}
+        <div className="mt-6">{children}</div>
       </div>
-    </motion.nav>
+    </div>
   );
 }
