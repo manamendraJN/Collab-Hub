@@ -69,7 +69,7 @@ export default function Layout({ children }) {
   initial={{ opacity: 0, y: -20 }}
   animate={{ opacity: 1, y: 0 }}
   transition={{ duration: 0.5 }}
-  className="w-full bg-slate-200 p-4 rounded-md flex justify-between items-center shadow-md text-gray-700
+  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-md flex justify-between items-center shadow-md text-white
              sticky top-0 z-50 bg-opacity-90 backdrop-blur-md"
 >
   <div>
