@@ -29,7 +29,7 @@ export default function Layout({ children }) {
         initial={{ x: -250, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className={`fixed top-0 left-0 h-full bg-slate-300 shadow-xl border-r z-[999]
+        className={`fixed top-0 left-0 h-full bg-slate-100 shadow-xl border-r z-[999]
                    ${isOpen ? "w-64" : "w-16"} transition-all`}
       >
         {/* Sidebar Toggle Button */}
