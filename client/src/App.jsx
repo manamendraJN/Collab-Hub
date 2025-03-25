@@ -30,6 +30,7 @@ function AppContent() {
         <Route path="/project" element={<Project/>} />
         <Route path="/teams" element = {<Teams/>} />
         <Route path="/messages" element = {<Messages/>} />
+        <Route path="/tasks" element = {<Tasks/>} />     
       </Routes>
     </>
   );
