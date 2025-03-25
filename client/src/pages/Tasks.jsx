@@ -32,7 +32,7 @@ export default function Task() {
       const data = await res.json();
       setProjects(data.projects);
       setFilteredProjects(data.projects);
-
+  
       const initialForms = {};
       data.projects.forEach((project) => {
         initialForms[project._id] = { 
@@ -40,7 +40,8 @@ export default function Task() {
           description: "", 
           dueDate: "", 
           priority: "Low", 
-          complexity: "Simple" 
+          complexity: "Simple",
+          assignedMember: "" // Ensure this exists
         };
       });
       setFormData(initialForms);
@@ -48,6 +49,19 @@ export default function Task() {
       console.error("Error fetching projects", error);
     }
   };
+  const handleInputChange = (e, projectId) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [projectId]: {
+        ...prev[projectId],
+        [name]: value,
+      },
+    }));
+  };
+  
+  
+  
 
   const fetchTeamMembers = async () => {
     try {
@@ -106,7 +120,7 @@ export default function Task() {
 
   const handleTaskSubmit = async (e, projectId) => {
     e.preventDefault();
-
+  
     try {
       const res = await fetch("/api/tasks", {
         method: "POST",
@@ -114,15 +128,19 @@ export default function Task() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ ...formData[projectId], project: projectId }),
+        body: JSON.stringify({ 
+          ...formData[projectId], 
+          project: projectId, 
+          assignedMember: formData[projectId]?.assignedMember || null 
+        }),
       });
-
+  
       const data = await res.json();
       if (data.success) {
         toast.success("Task created successfully!");
         setFormData((prev) => ({
           ...prev,
-          [projectId]: { title: "", description: "", dueDate: "", priority: "Low", complexity: "Simple" },
+          [projectId]: { title: "", description: "", dueDate: "", priority: "Low", complexity: "Simple", assignedMember: "" },
         }));
         fetchTasks(projectId);
       } else {
@@ -133,15 +151,8 @@ export default function Task() {
       toast.error("Something went wrong. Please try again.");
     }
   };
-
-  const handleInputChange = (e, projectId) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [projectId]: { ...prev[projectId], [name]: value },
-    }));
-  };
-
+  
+  
   const handleDeleteTask = async (taskId, projectId) => {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
   
@@ -316,6 +327,26 @@ export default function Task() {
                     </select>
                   </div>
                 </div>
+
+                <div className="space-y-2">
+  <label className="block text-gray-700 font-medium">Assign Team Member</label>
+  <select 
+    name="assignedMember"
+    className="border rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500"
+    value={formData[project._id]?.assignedMember || ""}
+    onChange={(e) => handleInputChange(e, project._id)}
+    required
+  >
+    <option value="">Select Team Member</option>
+    {allocatedMembers[project._id]?.map((member) => (
+      <option key={member._id} value={member._id}>
+        {member.name} ({member.email})
+      </option>
+    ))}
+  </select>
+</div>
+
+
     
                 <motion.button 
                   type="submit" 
