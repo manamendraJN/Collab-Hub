@@ -246,6 +246,7 @@ export default function Task() {
               <p className="text-lg text-gray-700 mb-6 text-center italic">{project.description}</p>
     
               <h4 className="font-semibold text-xl text-gray-800 mb-2 border-b pb-2">Create Task for {project.name}</h4>
+              
               <form onSubmit={(e) => handleTaskSubmit(e, project._id)} className="mt-4 space-y-4 bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200">
                 <div className="space-y-2">
                   <label className="block text-gray-700 font-medium">Task Title</label>
@@ -322,7 +323,7 @@ export default function Task() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  + Create Task
+                  Create Task
                 </motion.button>
               </form>
               

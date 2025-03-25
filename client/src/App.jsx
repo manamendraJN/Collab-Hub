@@ -12,7 +12,7 @@ import Dashboard from './pages/dashboard.jsx';
 import Project from './pages/project.jsx';
 import Messages from './pages/Messages.jsx';
 import Tasks from './pages/Tasks.jsx';
-import TeamMember from "./pages/TeamMember";
+import TeamMember from "./pages/TeamMember.jsx";
 
 function AppContent() {
   const location = useLocation();
