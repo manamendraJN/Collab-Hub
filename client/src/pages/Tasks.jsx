@@ -268,7 +268,7 @@ export default function Task() {
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Task Management</h1>
+          <h1 className="text-3xl font-bold text-slate-600">Task Management</h1>
           
           <div className="flex space-x-2 bg-white p-1 rounded-lg shadow-sm border border-gray-200">
             <button
@@ -492,7 +492,7 @@ export default function Task() {
                     transition={{ duration: 0.3 }}
                   >
 <div 
-  className="p-6 cursor-pointer flex justify-between items-center bg-gradient-to-r from-slate-300 to-slate-200 rounded-t-xl"
+  className="p-6 cursor-pointer flex justify-between items-center bg-gradient-to-r from-slate-100 to-slate-50 rounded-t-xl"
   onClick={() => toggleProject(project._id)}
 >
   <div className="flex-1 min-w-0">
@@ -522,9 +522,9 @@ export default function Task() {
       Refresh
     </motion.button>
     {expandedProjects[project._id] ? (
-      <ChevronUp className="text-white w-5 h-5 flex-shrink-0" />
+      <ChevronUp className="text-slate-600 w-5 h-5 flex-shrink-0" />
     ) : (
-      <ChevronDown className="text-white w-5 h-5 flex-shrink-0" />
+      <ChevronDown className="text-slate-600 w-5 h-5 flex-shrink-0" />
     )}
   </div>
 </div>
