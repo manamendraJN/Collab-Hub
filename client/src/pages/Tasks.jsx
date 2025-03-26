@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp } from 'react-feather'; // Using react-feather for icons
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, ChevronUp, Plus, RefreshCw, Trash2, Search, List, FilePlus } from 'react-feather';
 
 export default function Task() {
   const [projects, setProjects] = useState([]);
@@ -11,7 +11,10 @@ export default function Task() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [allocatedMembers, setAllocatedMembers] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
-  const [expandedProjects, setExpandedProjects] = useState({}); // Track which projects are expanded
+  const [expandedProjects, setExpandedProjects] = useState({});
+  const [activeTab, setActiveTab] = useState("list");
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -34,6 +37,7 @@ export default function Task() {
   };
 
   const fetchProjects = async () => {
+    setIsLoading(true);
     try {
       const res = await fetch("/api/projects", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -56,6 +60,9 @@ export default function Task() {
       setFormData(initialForms);
     } catch (error) {
       console.error("Error fetching projects", error);
+      toast.error("Failed to load projects");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,6 +75,7 @@ export default function Task() {
       setTeamMembers(data.teamMembers);
     } catch (error) {
       console.error("Error fetching team members", error);
+      toast.error("Failed to load team members");
     }
   };
 
@@ -80,7 +88,7 @@ export default function Task() {
       if (data.success) {
         setAllocatedMembers((prev) => ({
           ...prev,
-          [projectId]: data.team.members, // Set allocated members for the specific project
+          [projectId]: data.team.members,
         }));
       }
     } catch (error) {
@@ -89,20 +97,32 @@ export default function Task() {
   };
 
   const fetchTasks = async (projectId) => {
+    setIsLoading(true);
     try {
       const res = await fetch(`/api/tasks/project/${projectId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       const data = await res.json();
       setTasks((prev) => ({ ...prev, [projectId]: data.tasks }));
-      fetchAllocatedMembers(projectId); // Fetch allocated members when fetching tasks
+      fetchAllocatedMembers(projectId);
     } catch (error) {
       console.error("Error fetching tasks", error);
+      toast.error("Failed to load tasks");
+    } finally {
+      setIsLoading(false);
     }
-  };  
+  };
+
+  const handleProjectSelect = async (projectId) => {
+    setSelectedProject(projectId);
+    if (projectId) {
+      await fetchAllocatedMembers(projectId);
+    }
+  };
 
   const handleTaskSubmit = async (e, projectId) => {
     e.preventDefault();
+    setIsLoading(true);
   
     try {
       const res = await fetch("/api/tasks", {
@@ -126,18 +146,21 @@ export default function Task() {
           [projectId]: { title: "", description: "", dueDate: "", priority: "Low", complexity: "Simple", assignedMember: "" },
         }));
         fetchTasks(projectId);
+        setActiveTab("list");
       } else {
         toast.error(data.message || "Failed to create task");
       }
     } catch (error) {
       console.error("Error creating task:", error);
       toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
   
-  
   const handleDeleteTask = async (taskId, projectId) => {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
+    setIsLoading(true);
   
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
@@ -161,11 +184,14 @@ export default function Task() {
     } catch (error) {
       console.error("Error deleting task:", error);
       toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleEditMember = async (taskId, projectId, newMemberId) => {
     if (!window.confirm("Are you sure you want to change the team member?")) return;
+    setIsLoading(true);
   
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
@@ -187,10 +213,13 @@ export default function Task() {
     } catch (error) {
       console.error("Error updating team member:", error);
       toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleUpdateStatus = async (taskId, newStatus, projectId) => {
+    setIsLoading(true);
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: "PUT",
@@ -204,13 +233,15 @@ export default function Task() {
       const data = await res.json();
       if (data.success) {
         toast.success("Task status updated successfully!");
-        fetchTasks(projectId); // Refresh tasks to reflect the updated status
+        fetchTasks(projectId);
       } else {
         toast.error(data.message || "Failed to update task status");
       }
     } catch (error) {
       console.error("Error updating task status:", error);
       toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -234,308 +265,414 @@ export default function Task() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6">
-      {/* Search Bar */}
-      <div className="relative mb-6">
-        <input
-          type="text"
-          placeholder="Search projects..."
-          className="w-full p-4 pl-12 rounded-2xl border border-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-gray-50"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <svg
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-      </div>
-  
-      {/* Empty State */}
-      {filteredProjects.length === 0 ? (
-        <div className="text-center py-12">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <h3 className="mt-2 text-lg font-medium text-gray-900">No projects found</h3>
-          <p className="mt-1 text-gray-500">Try adjusting your search or create a new project.</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {filteredProjects.map((project) => (
-            <motion.div
-              key={project._id}
-              className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow duration-300"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Task Management</h1>
+          
+          <div className="flex space-x-2 bg-white p-1 rounded-lg shadow-sm border border-gray-200">
+            <button
+              onClick={() => setActiveTab("list")}
+              className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${activeTab === "list" ? "bg-blue-100 text-blue-600" : "text-gray-600 hover:text-gray-800"}`}
             >
-              {/* Collapsible Project Header */}
-              <div 
-                className="p-6 cursor-pointer flex justify-between items-center bg-gradient-to-r from-slate-400 to-slate-300"
-                onClick={() => toggleProject(project._id)}
+              <List className="w-4 h-4 mr-2" />
+              Task List
+            </button>
+            <button
+              onClick={() => setActiveTab("create")}
+              className={`px-4 py-2 text-sm font-medium rounded-md flex items-center ${activeTab === "create" ? "bg-blue-100 text-blue-600" : "text-gray-600 hover:text-gray-800"}`}
+            >
+              <FilePlus className="w-4 h-4 mr-2" />
+              Create Task
+            </button>
+          </div>
+        </div>
+
+        <div className="relative mb-6">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search projects..."
+            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {filteredProjects.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="mx-auto h-24 w-24 text-gray-400 mb-4">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">No projects found</h3>
+            <p className="mt-1 text-gray-500">Try adjusting your search or create a new project.</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {activeTab === "create" && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200"
               >
-                <div >
-                  <h3 className="text-2xl font-bold text-white">{project.name}</h3>
-                  <p className="text-gray-700 mt-1">{project.description}</p>
+                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                  <h2 className="text-xl font-semibold text-gray-800">Create New Task</h2>
+                  <p className="text-sm text-gray-500">Select a project to create a task for</p>
                 </div>
-                <div className="flex items-center">
-                  <motion.button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      fetchTasks(project._id);
-                    }}
-                    className="bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition-all font-medium flex items-center mr-4"
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Load Tasks
-                  </motion.button>
-                  {expandedProjects[project._id] ? (
-                    <ChevronUp className="text-gray-500 w-6 h-6" />
-                  ) : (
-                    <ChevronDown className="text-gray-500 w-6 h-6" />
+                
+                <div className="p-6">
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Project</label>
+                    <select
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                      value={selectedProject || ""}
+                      onChange={(e) => handleProjectSelect(e.target.value)}
+                      required
+                    >
+                      <option value="">Choose a project...</option>
+                      {filteredProjects.map((project) => (
+                        <option key={project._id} value={project._id}>{project.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {selectedProject && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <form onSubmit={(e) => handleTaskSubmit(e, selectedProject)} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
+                            <input
+                              type="text"
+                              name="title"
+                              placeholder="Enter task title"
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                              value={formData[selectedProject]?.title || ""}
+                              onChange={(e) => handleInputChange(e, selectedProject)}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                            <input
+                              type="date"
+                              name="dueDate"
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                              value={formData[selectedProject]?.dueDate || ""}
+                              onChange={(e) => handleInputChange(e, selectedProject)}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                          <textarea
+                            name="description"
+                            placeholder="Enter task description"
+                            rows={3}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                            value={formData[selectedProject]?.description || ""}
+                            onChange={(e) => handleInputChange(e, selectedProject)}
+                            required
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                            <select
+                              name="priority"
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                              value={formData[selectedProject]?.priority || "Low"}
+                              onChange={(e) => handleInputChange(e, selectedProject)}
+                              required
+                            >
+                              <option value="Low">Low</option>
+                              <option value="Medium">Medium</option>
+                              <option value="High">High</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Complexity</label>
+                            <select
+                              name="complexity"
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                              value={formData[selectedProject]?.complexity || "Simple"}
+                              onChange={(e) => handleInputChange(e, selectedProject)}
+                              required
+                            >
+                              <option value="Simple">Simple</option>
+                              <option value="Moderate">Moderate</option>
+                              <option value="Complex">Complex</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Assign Team Member</label>
+                          {allocatedMembers[selectedProject]?.length > 0 ? (
+                            <select 
+                              name="assignedMember"
+                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                              value={formData[selectedProject]?.assignedMember || ""}
+                              onChange={(e) => handleInputChange(e, selectedProject)}
+                              required
+                            >
+                              <option value="">Select Team Member</option>
+                              {allocatedMembers[selectedProject]?.map((member) => (
+                                <option key={member._id} value={member._id}>
+                                  {member.name} ({member.email})
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <div className="p-3 bg-yellow-50 text-yellow-700 rounded-lg border border-yellow-100">
+                              <p className="text-sm">No team members are assigned to this project yet.</p>
+                              <p className="text-xs mt-1">Please assign team members to the project first.</p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex justify-end space-x-3 pt-4">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedProject(null);
+                              setActiveTab("list");
+                            }}
+                            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={isLoading || !allocatedMembers[selectedProject]?.length}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition flex items-center disabled:opacity-70"
+                          >
+                            {isLoading ? (
+                              <>
+                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                Creating...
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-4 h-4 mr-2" />
+                                Create Task
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </form>
+                    </motion.div>
                   )}
                 </div>
-              </div>
-              
-              {/* Expanded Content */}
-              {expandedProjects[project._id] && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="px-6 pb-6"
-                >
-                  {/* Create Task Form */}
-                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mb-6 mt-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Create New Task</h4>
-                    <form onSubmit={(e) => handleTaskSubmit(e, project._id)} className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
-                          <input
-                            type="text"
-                            name="title"
-                            placeholder="Enter task title"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                            value={formData[project._id]?.title || ""}
-                            onChange={(e) => handleInputChange(e, project._id)}
-                            required
-                          />
-                        </div>
+              </motion.div>
+            )}
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                          <input
-                            type="date"
-                            name="dueDate"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                            value={formData[project._id]?.dueDate || ""}
-                            onChange={(e) => handleInputChange(e, project._id)}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea
-                          name="description"
-                          placeholder="Enter task description"
-                          rows={3}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                          value={formData[project._id]?.description || ""}
-                          onChange={(e) => handleInputChange(e, project._id)}
-                          required
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                          <select
-                            name="priority"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                            value={formData[project._id]?.priority || "Low"}
-                            onChange={(e) => handleInputChange(e, project._id)}
-                            required
-                          >
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Complexity</label>
-                          <select
-                            name="complexity"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                            value={formData[project._id]?.complexity || "Simple"}
-                            onChange={(e) => handleInputChange(e, project._id)}
-                            required
-                          >
-                            <option value="Simple">Simple</option>
-                            <option value="Moderate">Moderate</option>
-                            <option value="Complex">Complex</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="block text-gray-700 font-medium">Assign Team Member</label>
-                        <select 
-                          name="assignedMember"
-                          className="border rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-indigo-500"
-                          value={formData[project._id]?.assignedMember || ""}
-                          onChange={(e) => handleInputChange(e, project._id)}
-                          required
+            {activeTab === "list" && (
+              <div className="space-y-4">
+                {filteredProjects.map((project) => (
+                  <motion.div
+                    key={project._id}
+                    className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+<div 
+  className="p-6 cursor-pointer flex justify-between items-center bg-gradient-to-r from-slate-300 to-slate-200 rounded-t-xl"
+  onClick={() => toggleProject(project._id)}
+>
+  <div className="flex-1 min-w-0">
+    <div className="flex items-center space-x-3">
+      <div className="flex-shrink-0 bg-white/20 p-2 rounded-lg">
+        <svg className="h-5 w-5 text-slate-950" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      </div>
+      <div className="min-w-0">
+        <h3 className="text-lg font-bold text-slate-800 truncate">{project.name}</h3>
+        <p className="text-slate-700 text-sm mt-1 truncate">{project.description}</p>
+      </div>
+    </div>
+  </div>
+  <div className="flex items-center space-x-3">
+    <motion.button
+      onClick={(e) => {
+        e.stopPropagation();
+        fetchTasks(project._id);
+      }}
+      className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg transition flex items-center text-sm font-medium"
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      <RefreshCw className="w-4 h-4 mr-1" />
+      Refresh
+    </motion.button>
+    {expandedProjects[project._id] ? (
+      <ChevronUp className="text-white w-5 h-5 flex-shrink-0" />
+    ) : (
+      <ChevronDown className="text-white w-5 h-5 flex-shrink-0" />
+    )}
+  </div>
+</div>
+                    
+                    <AnimatePresence>
+                      {expandedProjects[project._id] && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="px-5 pb-5"
                         >
-                          <option value="">Select Team Member</option>
-                          {allocatedMembers[project._id]?.map((member) => (
-                            <option key={member._id} value={member._id}>
-                              {member.name} ({member.email})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                          <div className="mt-4">
+                            <div className="flex justify-between items-center mb-4">
+                              <h4 className="text-lg font-semibold text-gray-800 flex items-center">
+                                <List className="w-5 h-5 mr-2 text-gray-500" />
+                                Project Tasks
+                              </h4>
+                              <button
+                                onClick={() => {
+                                  setSelectedProject(project._id);
+                                  setActiveTab("create");
+                                }}
+                                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition flex items-center"
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                New Task
+                              </button>
+                            </div>
 
-                      <div className="flex justify-end">
-                        <motion.button
-                          type="submit"
-                          className="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition-all flex items-center"
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                          Create Task
-                        </motion.button>
-                      </div>
-                    </form>
-                  </div>
-
-                  {/* Tasks Section */}
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                      <svg className="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      Project Tasks
-                    </h4>
-
-                    {tasks[project._id]?.length > 0 ? (
-                      <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-                        <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {tasks[project._id].map((task) => (
-                              <tr key={task._id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="font-medium text-gray-900">{task.title}</div>
-                                  <div className="text-sm text-gray-500 line-clamp-1">{task.description}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {new Date(task.dueDate).toLocaleDateString()}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                    task.priority === 'High' ? 'bg-red-100 text-red-800' : 
-                                    task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 
-                                    'bg-green-100 text-green-800'
-                                  }`}>
-                                    {task.priority}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <select
-                                    value={task.status}
-                                    onChange={(e) => handleUpdateStatus(task._id, e.target.value, project._id)}
-                                    className={`block w-36 rounded-md border-0 py-1 pl-3 pr-10 text-sm focus:ring-2 focus:ring-indigo-500 ${
-                                      task.status === 'Completed' ? 'bg-green-50 text-green-700' :
-                                      task.status === 'In Progress' ? 'bg-blue-50 text-blue-700' :
-                                      'bg-gray-50 text-gray-700'
-                                    }`}
-                                  >
-                                    <option value="Pending">Pending</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Completed">Completed</option>
-                                  </select>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <select
-                                    value={task.assignedMember?._id || ""}
-                                    onChange={(e) => handleEditMember(task._id, project._id, e.target.value)}
-                                    className="block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                  >
-                                    <option value="">Unassigned</option>
-                                    {allocatedMembers[project._id]?.map((member) => (
-                                      <option key={member._id} value={member._id}>
-                                        {member.name}
-                                      </option>
+                            {isLoading ? (
+                              <div className="flex justify-center py-8">
+                                <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+                              </div>
+                            ) : tasks[project._id]?.length > 0 ? (
+                              <div className="overflow-hidden rounded-lg border border-gray-200">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <thead className="bg-gray-50">
+                                    <tr>
+                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
+                                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="bg-white divide-y divide-gray-200">
+                                    {tasks[project._id].map((task) => (
+                                      <tr key={task._id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4">
+                                          <div className="font-medium text-gray-900">{task.title}</div>
+                                          <div className="text-sm text-gray-500 line-clamp-1">{task.description}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                          {new Date(task.dueDate).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                            task.priority === 'High' ? 'bg-red-100 text-red-800' : 
+                                            task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 
+                                            'bg-green-100 text-green-800'
+                                          }`}>
+                                            {task.priority}
+                                          </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                          <select
+                                            value={task.status}
+                                            onChange={(e) => handleUpdateStatus(task._id, e.target.value, project._id)}
+                                            className={`block w-36 rounded-md border-0 py-1.5 pl-3 pr-10 text-sm focus:ring-2 focus:ring-blue-500 ${
+                                              task.status === 'Completed' ? 'bg-green-50 text-green-700' :
+                                              task.status === 'In Progress' ? 'bg-blue-50 text-blue-700' :
+                                              'bg-gray-50 text-gray-700'
+                                            }`}
+                                          >
+                                            <option value="Pending">Pending</option>
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Completed">Completed</option>
+                                          </select>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                          <select
+                                            value={task.assignedMember?._id || ""}
+                                            onChange={(e) => handleEditMember(task._id, project._id, e.target.value)}
+                                            className="block w-40 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                          >
+                                            <option value="">Unassigned</option>
+                                            {allocatedMembers[project._id]?.map((member) => (
+                                              <option key={member._id} value={member._id}>
+                                                {member.name}
+                                              </option>
+                                            ))}
+                                          </select>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                          <button
+                                            onClick={() => handleDeleteTask(task._id, project._id)}
+                                            className="text-red-600 hover:text-red-900 flex items-center"
+                                            disabled={isLoading}
+                                          >
+                                            <Trash2 className="w-4 h-4 mr-1" />
+                                            Delete
+                                          </button>
+                                        </td>
+                                      </tr>
                                     ))}
-                                  </select>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                  </tbody>
+                                </table>
+                              </div>
+                            ) : (
+                              <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                                <svg
+                                  className="mx-auto h-12 w-12 text-gray-400"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks found</h3>
+                                <p className="mt-1 text-sm text-gray-500">Get started by creating a new task.</p>
+                                <div className="mt-4">
                                   <button
-                                    onClick={() => handleDeleteTask(task._id, project._id)}
-                                    className="text-red-600 hover:text-red-900 flex items-center"
+                                    onClick={() => {
+                                      setSelectedProject(project._id);
+                                      setActiveTab("create");
+                                    }}
+                                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition flex items-center mx-auto"
                                   >
-                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                    Delete
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Create Task
                                   </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                        <svg
-                          className="mx-auto h-12 w-12 text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks</h3>
-                        <p className="mt-1 text-sm text-gray-500">Get started by creating a new task.</p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
