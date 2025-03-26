@@ -234,7 +234,7 @@ export default function Task() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6">
+    <div className="max-w-7xl mx-auto p-4 md:p-6">
       {/* Search Bar */}
       <div className="relative mb-6">
         <input
@@ -320,7 +320,7 @@ export default function Task() {
                   className="px-6 pb-6"
                 >
                   {/* Create Task Form */}
-                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mb-6">
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mb-6 mt-4">
                     <h4 className="text-lg font-semibold text-gray-800 mb-4">Create New Task</h4>
                     <form onSubmit={(e) => handleTaskSubmit(e, project._id)} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
