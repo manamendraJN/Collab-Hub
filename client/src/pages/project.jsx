@@ -119,7 +119,7 @@ export default function Project() {
   
 
   return (
-    <div className="container mx-auto p-6 pt-16">
+    <div className="container mx-auto p-6 pt-1">
       <form onSubmit={handleSubmit} className="mt-6 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
         <h3 className="text-xl font-semibold mb-4">Create New Project</h3>
         <input 
