@@ -15,8 +15,6 @@ export const createTask = async (req, res) => {
       return res.status(404).json({ success: false, message: "Project not found" });
     }
 
-    
-
     // Fetch team for the given project
     const team = await Team.findOne({ project });
     if (!team || team.members.length === 0) {
@@ -86,25 +84,31 @@ export const createTask = async (req, res) => {
         return { member: memberId, workloadScore };
       })
     );
-    // Fetch team member names for logging
+
+    // Fetch team member names for logging and response
     const teamMemberNames = await TeamMember.find({ _id: { $in: teamMembers } }).select('name _id');
 
     // Map updated workload data to include names
     const workloadWithNames = updatedWorkloadData.map(data => {
       const member = teamMemberNames.find(member => member._id.toString() === data.member.toString());
-      return { name: member?.name, workloadScore: data.workloadScore };
+      return { name: member?.name || "Unknown", workloadScore: data.workloadScore };
     });
 
     // Log the updated workload scores after assignment
     console.log("Updated Workload Scores after assignment:", workloadWithNames);
 
-    res.status(201).json({ success: true, message: "Task created successfully", task: newTask });
+    // Return task and workload scores in response
+    res.status(201).json({
+      success: true,
+      message: "Task created successfully",
+      task: newTask,
+      workloadScores: workloadWithNames // Add workload scores to response
+    });
   } catch (error) {
     console.error("Error creating task:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-
 
 
 // ✅ Get all tasks
@@ -161,6 +165,59 @@ export const deleteTask = async (req, res) => {
     res.status(200).json({ success: true, message: "Task deleted successfully" });
   } catch (error) {
     console.error("Error deleting task:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// ✅ Get workload scores for a project’s team members
+export const getWorkloadScores = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    // Check if project exists
+    const existingProject = await Project.findById(projectId);
+    if (!existingProject) {
+      return res.status(404).json({ success: false, message: "Project not found" });
+    }
+
+    // Fetch team for the given project
+    const team = await Team.findOne({ project: projectId });
+    if (!team || team.members.length === 0) {
+      return res.status(400).json({ success: false, message: "No team members assigned to this project" });
+    }
+
+    const teamMembers = team.members; // Extracting member IDs
+
+    // Calculate workload for each member
+    const workloadData = await Promise.all(
+      teamMembers.map(async (memberId) => {
+        const totalTasks = await Task.countDocuments({ assignedMember: memberId });
+        const urgentTasks = await Task.countDocuments({
+          assignedMember: memberId,
+          dueDate: { $lte: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) }, // Due in next 3 days
+        });
+        const complexTasks = await Task.countDocuments({ assignedMember: memberId, complexity: "Complex" });
+        const highPriorityTasks = await Task.countDocuments({ assignedMember: memberId, priority: "High" });
+
+        // Workload Score Formula (Lower is better)
+        const workloadScore = (totalTasks * 2) + (urgentTasks * 3) + (complexTasks * 5) + (highPriorityTasks * 4);
+
+        return { member: memberId, workloadScore };
+      })
+    );
+
+    // Fetch team member names
+    const teamMemberNames = await TeamMember.find({ _id: { $in: teamMembers } }).select("name _id");
+
+    // Map workload data to include names
+    const workloadWithNames = workloadData.map((data) => {
+      const member = teamMemberNames.find((m) => m._id.toString() === data.member.toString());
+      return { name: member?.name || "Unknown", workloadScore: data.workloadScore };
+    });
+
+    res.status(200).json({ success: true, workloadScores: workloadWithNames });
+  } catch (error) {
+    console.error("Error fetching workload scores:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
