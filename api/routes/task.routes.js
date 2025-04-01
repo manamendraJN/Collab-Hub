@@ -1,5 +1,5 @@
 import express from "express";
-import { createTask, getAllTasks, getTasksByProject, updateTask, deleteTask } from "../controllers/task.controller.js";
+import { createTask, getAllTasks, getTasksByProject, updateTask, deleteTask, getWorkloadScores } from "../controllers/task.controller.js";
 
 const router = express.Router();
 
@@ -17,5 +17,8 @@ router.put("/:taskId", updateTask);
 
 // 🔹 Delete a task
 router.delete("/:taskId", deleteTask);
+
+// 🔹 Get workload scores for a project
+router.get("/workload-scores/:projectId", getWorkloadScores);
 
 export default router;
