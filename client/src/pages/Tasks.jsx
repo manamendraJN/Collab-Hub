@@ -267,7 +267,7 @@ export default function TaskManagement() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-6 pt-24">
+    <div className="max-w-7xl mx-auto p-6 ">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
