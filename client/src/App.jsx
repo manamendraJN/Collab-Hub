@@ -38,6 +38,9 @@ function AppContent() {
             <Route path="/messages" element={<Messages />} />
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/team-members" element={<Teams />} />
+            <Route path="/create-project" element={<CreateProject />} />
+            <Route path="/project/:id" element={<ProjectDetails />} />
+            <Route path="/edit-project/:id" element={<ProjectEdit />} />
           </Routes>
         </Header>
       ) : (
