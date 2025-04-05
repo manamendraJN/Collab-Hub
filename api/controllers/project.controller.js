@@ -1,22 +1,35 @@
+import { v4 as uuidv4 } from 'uuid'; // ✅ Import UUID
 import Project from "../models/project.model.js";
 
 // Create Project
 export const createProject = async (req, res) => {
   try {
     const { name, description, startDate, endDate, status, category } = req.body;
+
     const newProject = new Project({
+      projectId: uuidv4(), // ✅ Auto-generate unique project ID
       name,
       description,
       startDate,
       endDate,
       status,
       category,
-      createdBy: req.user.id, // Extracted from JWT
+      createdBy: req.user.id, // From JWT
     });
+
     await newProject.save();
-    res.status(201).json({ success: true, message: "Project created successfully!", project: newProject });
+    res.status(201).json({
+      success: true,
+      message: "Project created successfully!",
+      project: newProject
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error creating project", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Error creating project",
+      error: error.message
+    });
   }
 };
 

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const projectSchema = new mongoose.Schema({
+  projectId: { type: String, required: true, unique: true }, // <-- Add this
   name: { type: String, required: true },
   description: { type: String },
   startDate: { type: Date, required: true },
