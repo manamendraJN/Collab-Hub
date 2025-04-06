@@ -2,11 +2,11 @@ import File from '../models/fileModel.js';
 import fs from 'fs';
 import path from 'path';
 
-// Define base directories relative to the project root
+
 const BASE_DIR = path.resolve(process.cwd(), 'uploads');
 const VERSION_DIR = path.join(BASE_DIR, 'versions');
 
-// Utility function to ensure a directory exists
+
 const ensureDirectoryExists = (dirPath) => {
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
@@ -21,7 +21,7 @@ export const uploadFile = async (req, res) => {
 
     const { filename, path: filepath, mimetype, size } = req.file;
 
-    // Save the new file in the database
+   
     const newFile = new File({ filename, filepath, mimetype, size });
     await newFile.save();
 
@@ -53,22 +53,21 @@ export const updateFile = async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded for update' });
     }
 
-    // Ensure the 'uploads' and 'versions' directories exist
+    
     ensureDirectoryExists(BASE_DIR);
     ensureDirectoryExists(VERSION_DIR);
 
-    // Create a versioned filename with timestamp
     const versionFilename = `${existingFile.filename}-${Date.now()}${path.extname(existingFile.filename)}`;
     const versionPath = path.join(VERSION_DIR, versionFilename);
 
-    // Move the old file to the versions directory
+    
     if (fs.existsSync(existingFile.filepath)) {
       fs.renameSync(existingFile.filepath, versionPath);
     } else {
       console.warn(`Old file not found at ${existingFile.filepath}, skipping versioning.`);
     }
 
-    // Add the old file as a new version
+  
     existingFile.versions.push({
       versionNumber: existingFile.versions.length + 1,
       filename: existingFile.filename,
@@ -78,7 +77,7 @@ export const updateFile = async (req, res) => {
       uploadDate: existingFile.uploadDate,
     });
 
-    // Update with the new file details from req.file
+    
     const { filename, path: filepath, mimetype, size } = req.file;
     existingFile.filename = filename;
     existingFile.filepath = filepath;
@@ -102,19 +101,19 @@ export const deleteFile = async (req, res) => {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    // Log the file path to make sure it's correct
+    
     console.log(`Deleting file with ID: ${id}`);
     console.log(`File path: ${file.filepath}`);
 
-    // Ensure the file exists before trying to delete it
+    
     if (fs.existsSync(file.filepath)) {
-      fs.unlinkSync(file.filepath); // Delete the file from the file system
+      fs.unlinkSync(file.filepath); 
       console.log(`File ${file.filename} deleted from file system.`);
     } else {
       console.log(`File ${file.filename} not found in file system.`);
     }
 
-    // Remove the file from the database
+ 
     await file.deleteOne();
     console.log(`File with ID: ${id} deleted from database.`);
 
