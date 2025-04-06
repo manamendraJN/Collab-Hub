@@ -1,0 +1,17 @@
+client ID-- 178730954348-2u5imu69o3a01b9n0dhvh8oi5m1mrbke.apps.googleusercontent.com
+
+
+
+
+SPOOL "C:\Users\Yasitha\Desktop\labsheet2\script.sql"
+
+SELECT * FROM OREMP
+/
+SELECT D.DEPTNO, D.DEPTNAME
+FROM ORDEPT D
+/
+DELETE FROM ORDEPT
+WHERE DEPTNAME = 'C01'
+/
+
+SPOOL OFF

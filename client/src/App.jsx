@@ -13,30 +13,41 @@ import Project from './pages/project.jsx'
 import Teams from './pages/Teams.jsx';
 import Messages from './pages/Messages.jsx';
 import Tasks from './pages/Tasks.jsx';
+import File from './pages/fileManagement.jsx';
 
 function AppContent() {
   const location = useLocation();
+
   return (
     <>
       <ToastContainer />
-      {location.pathname !== "/sign-up" && location.pathname !== "/" && location.pathname !== "/login" && <Header />}
-      <Routes>
-
-        <Route path="/" element={<Landingpg />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/sign-up" element={<SignUp />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/profile" element={<Profile/>}/>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/project" element={<Project/>} />
-        <Route path="/teams" element = {<Teams/>} />
-        <Route path="/messages" element = {<Messages/>} />
-        <Route path="/tasks" element = {<Tasks/>} />
-        
-      </Routes>
+      {location.pathname !== "/sign-up" && location.pathname !== "/" && location.pathname !== "/login" ? (
+        <Header>
+          <Routes>
+            <Route path="/" element={<Landingpg />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/project" element={<Project />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/team-members" element={<Teams />} />
+            <Route path="/file" element = {<File/>} />
+          </Routes>
+        </Header>
+      ) : (
+        <Routes>
+          <Route path="/" element={<Landingpg />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/sign-up" element={<SignUp />} />
+        </Routes>
+      )}
     </>
   );
 }
+
 
 export default function App() {
   return (
