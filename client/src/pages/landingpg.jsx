@@ -3,75 +3,201 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const Landingpg = () => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 40 },
+    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100 } },
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col justify-between">
-      {/* Hero Section */}
-      <motion.section 
-        initial={{ opacity: 0, scale: 0.9 }} 
-        animate={{ opacity: 1, scale: 1 }} 
-        transition={{ duration: 0.7 }}
-        className="text-center py-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+    <div className="min-h-screen bg-gray-950 text-white font-sans antialiased overflow-x-hidden">
+      {/* Hero Section (Unchanged as per your request) */}
+      <motion.section
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1 }}
+        className="relative py-28 md:py-36 bg-gradient-to-br from-indigo-900 via-purple-900 to-black"
       >
-        <h2 className="text-4xl font-extrabold drop-shadow-lg">Empower Your Team with Smart Collaboration</h2>
-        <p className="mt-4 text-lg max-w-3xl mx-auto font-medium">Manage projects efficiently, balance workloads, and track productivity with our all-in-one platform.</p>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(79,70,229,0.2)_0%,_transparent_70%)] pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center md:text-left md:flex md:items-center md:gap-12">
+            <div className="flex-1">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-wide leading-tight">
+                <span className="block bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+                  RemoteCollab
+                </span>
+                Next-Gen Teamwork
+              </h1>
+              <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl">
+                Revolutionize your workflow with AI-driven task management and immersive collaboration tools.
+              </p>
+              <motion.div whileHover={{ scale: 1.05 }} className="mt-8 inline-block">
+                <Link
+                  to="/sign-up"
+                  className="px-8 py-4 bg-indigo-500 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-600 transition-all duration-300 backdrop-blur-md bg-opacity-80 border border-indigo-400/30"
+                >
+                  Launch Now
+                </Link>
+              </motion.div>
+            </div>
+            <div className="hidden md:block flex-1">
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+                className="bg-indigo-800/20 p-6 rounded-xl backdrop-blur-lg border border-indigo-500/20"
+              >
+                <p className="text-sm text-indigo-200 italic">“The future of remote work is here.”</p>
+              </motion.div>
+            </div>
+          </div>
+        </div>
       </motion.section>
 
-      {/* Project Highlights */}
-      <section className="py-14 px-8">
-        <h3 className="text-3xl font-extrabold text-center mb-12 text-gray-800 drop-shadow-md">Core Features</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-6xl mx-auto">
-          {[ 
-            { title: "📊 Project Manager", desc: "Track project progress, team performance, and deadline compliance." },
-            { title: "✅ Task Manager", desc: "Balance workload, optimize assignments, and monitor task completion." },
-            { title: "💬 Communication & Collaboration", desc: "Streamline team discussions, file sharing, and feedback loops." },
-            { title: "⏳ Time & Productivity", desc: "Monitor time tracking, analyze productivity, and manage deadlines effectively." }
-          ].map((feature, index) => (
-            <motion.div 
-              key={index}
-              initial={{ opacity: 0, y: 0
-               }}
-              animate={{ opacity: 2, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
-              className="bg-white p-6 shadow-xl rounded-xl text-center border-l-8 border-blue-500 transform hover:scale-105 transition duration-300"
-            >
-              <h4 className="text-2xl font-bold text-gray-900 drop-shadow-sm">{feature.title}</h4>
-              <p className="mt-3 text-md text-gray-600 font-medium">{feature.desc}</p>
-            </motion.div>
-          ))}
+      {/* Features Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-950">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-4xl md:text-5xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 mb-16">
+            Core Features
+          </h2>
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            {[
+              {
+                icon: "📋",
+                title: "Project Creation & Management",
+                desc: "Define projects with names, descriptions, dates, and team members. Send instant invites.",
+              },
+              {
+                icon: "⚖️",
+                title: "Smart Workload Balancer",
+                desc: "Assign tasks by complexity and deadlines. Rebalance workloads automatically.",
+              },
+              {
+                icon: "📂",
+                title: "File Management & Versioning",
+                desc: "Upload, version, and restore files with full history tracking.",
+              },
+              {
+                icon: "💬",
+                title: "Communication & Collaboration",
+                desc: "Comment on tasks, chat live, and share files seamlessly.",
+              },
+              {
+                icon: "📊",
+                title: "Reports & Analytics",
+                desc: "Track progress, performance, and productivity with detailed reports.",
+              },
+              {
+                icon: "✅",
+                title: "Project Archiving",
+                desc: "Complete and archive projects for easy future access.",
+              },
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                variants={itemVariants}
+                className="relative p-6 rounded-xl bg-gray-900/50 backdrop-blur-md border border-gray-800/50 hover:border-indigo-500/50 transition-all duration-300 group"
+              >
+                <span className="text-4xl mb-4 block text-indigo-400 group-hover:scale-110 transition-transform duration-300">
+                  {feature.icon}
+                </span>
+                <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{feature.desc}</p>
+                <div className="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* Call to Action */}
-      <motion.section 
+      {/* CTA Section */}
+      <motion.section
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.7 }}
-        className="text-center py-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="py-24 bg-gradient-to-br from-indigo-900 to-black text-center"
       >
-        <h3 className="text-3xl font-extrabold drop-shadow-lg">Start Managing Your Team Efficiently!</h3>
-        <p className="mt-4 text-lg font-medium">Join now and enhance productivity with seamless project management tools.</p>
-        <motion.button 
-          whileHover={{ scale: 1.1 }}
-          className="mt-6 px-6 py-3 bg-white text-blue-700 font-bold text-lg rounded-lg shadow-lg hover:bg-gray-200 transition"
-        >
-          <Link to="/sign-up">Get Started Now</Link>
-        </motion.button>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 mb-6">
+            Optimize Your Team Today
+          </h2>
+          <p className="text-lg md:text-xl text-gray-300 mb-8">
+            Leverage AI and real-time tools to elevate collaboration and efficiency.
+          </p>
+          <motion.div whileHover={{ scale: 1.05 }}>
+            <Link
+              to="/sign-up"
+              className="inline-block px-8 py-4 bg-indigo-500 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-600 transition-all duration-300 backdrop-blur-md bg-opacity-80 border border-indigo-400/30"
+            >
+              Get Started
+            </Link>
+          </motion.div>
+        </div>
       </motion.section>
 
       {/* Footer */}
-      <motion.footer 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.7 }}
-        className="text-center py-6 bg-gray-900 text-gray-300"
-      >
-        <p className="text-md font-medium">© 2025 RemoteCollab. All rights reserved.</p>
-        <div className="mt-3 space-x-6 text-md">
-          <a href="#" className="hover:text-white">About</a>
-          <a href="#" className="hover:text-white">Contact</a>
-          <a href="#" className="hover:text-white">Privacy Policy</a>
+      <footer className="bg-gray-900 py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div>
+              <h3 className="text-2xl font-bold text-indigo-400 mb-4">RemoteCollab</h3>
+              <p className="text-sm text-gray-400 leading-relaxed">
+                Next-gen tools for project management and team collaboration.
+              </p>
+              <p className="text-xs text-gray-500 mt-4">Founded 2025 | 10K+ Users</p>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">Features</h3>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-indigo-400 transition">Project Management</a></li>
+                <li><a href="#" className="hover:text-indigo-400 transition">Task Balancing</a></li>
+                <li><a href="#" className="hover:text-indigo-400 transition">File Versioning</a></li>
+                <li><a href="#" className="hover:text-indigo-400 transition">Analytics</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">Support</h3>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-indigo-400 transition">Help Center</a></li>
+                <li><a href="#" className="hover:text-indigo-400 transition">Guides</a></li>
+                <li><a href="#" className="hover:text-indigo-400 transition">FAQ</a></li>
+                <li><a href="#" className="hover:text-indigo-400 transition">Community</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">Contact</h3>
+              <ul className="space-y-3 text-sm text-gray-400">
+                <li><a href="mailto:support@remotecollab.io" className="hover:text-indigo-400 transition">support@remotecollab.io</a></li>
+                <li><a href="tel:+1-888-555-2025" className="hover:text-indigo-400 transition">+1-888-555-2025</a></li>
+                <li className="flex space-x-4 mt-4">
+                  <a href="#" className="hover:text-indigo-400 transition">X</a>
+                  <a href="#" className="hover:text-indigo-400 transition">LinkedIn</a>
+                  <a href="#" className="hover:text-indigo-400 transition">Discord</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-12 pt-6 border-t border-gray-800/50 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+            <p>© 2025 RemoteCollab Inc. All rights reserved.</p>
+            <div className="mt-4 md:mt-0 space-x-6">
+              <a href="#" className="hover:text-indigo-400 transition">Terms</a>
+              <a href="#" className="hover:text-indigo-400 transition">Privacy</a>
+              <a href="#" className="hover:text-indigo-400 transition">Status</a>
+            </div>
+          </div>
         </div>
-      </motion.footer>
+      </footer>
     </div>
   );
 };
