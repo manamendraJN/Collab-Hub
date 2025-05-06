@@ -62,7 +62,10 @@ export const updateFile = async (req, res) => {
 
     
     if (fs.existsSync(existingFile.filepath)) {
-      fs.renameSync(existingFile.filepath, versionPath);
+      // fs.renameSync(existingFile.filepath, versionPath);
+      fs.copyFileSync(existingFile.filepath, versionPath);
+      fs.unlinkSync(existingFile.filepath);
+
     } else {
       console.warn(`Old file not found at ${existingFile.filepath}, skipping versioning.`);
     }
@@ -181,14 +184,23 @@ export const restoreVersion = async (req, res) => {
       return res.status(404).json({ error: 'Version not found' });
     }
 
-    // Restore the file by renaming the version file back to the original location
-    fs.renameSync(version.filepath, file.filepath);
+    // Ensure destination exists
+    ensureDirectoryExists(path.dirname(file.filepath));
 
-    // Update the file's version history (keep all versions)
+    // Restore file by copying (not moving)
+    fs.copyFileSync(version.filepath, file.filepath);
+
+    // Optional: Update file metadata
+    file.filename = version.filename;
+    file.mimetype = version.mimetype;
+    file.size = version.size;
+    file.uploadDate = new Date();
+
     await file.save();
 
     res.status(200).json({ message: 'File restored successfully', file });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error restoring file version:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to restore file version' });
   }
 };

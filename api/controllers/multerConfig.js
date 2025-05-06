@@ -32,6 +32,7 @@ const fileFilter = (req, file, cb) => {
     'image/png',
     'application/pdf',
     'text/plain',
+    'application/msword',
   ];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
