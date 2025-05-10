@@ -11,7 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
-  Rocket
+  Rocket,
+  File
 } from "lucide-react";
 
 export default function Layout({ children }) {
@@ -29,6 +30,7 @@ export default function Layout({ children }) {
     { name: "Tasks", path: "/tasks", icon: ClipboardList },
     { name: "Team", path: "/team-members", icon: Users },
     { name: "Messages", path: "/messages", icon: MessageSquare },
+    { name: "files", path: "/file", icon: File },
     { name: "Profile", path: "/profile", icon: User },
     { name: "About", path: "/about", icon: Info },
   ];
