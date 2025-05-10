@@ -8,6 +8,8 @@ export default function Project() {
   const [formData, setFormData] = useState({ name: "", description: "", startDate: "", endDate: "" });
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [activeTab, setActiveTab] = useState("projects");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -15,6 +17,7 @@ export default function Project() {
   }, []);
 
   const fetchProjects = async () => {
+    setIsLoading(true);
     try {
       const res = await fetch("/api/projects", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -24,6 +27,9 @@ export default function Project() {
       fetchAssignedMembers(data.projects);
     } catch (error) {
       console.error("Error fetching projects", error);
+      toast.error("Failed to load projects");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -36,6 +42,7 @@ export default function Project() {
       setTeamMembers(data.teamMembers);
     } catch (error) {
       console.error("Error fetching team members", error);
+      toast.error("Failed to load team members");
     }
   };
 
@@ -48,7 +55,7 @@ export default function Project() {
         });
         const data = await res.json();
         if (data.success) {
-          assignments[project._id] = data.team.members; // Fix: Access `data.team.members` instead of `data.members`
+          assignments[project._id] = data.team.members;
         }
       }
       setTeamAssignments(assignments);
@@ -56,24 +63,31 @@ export default function Project() {
       console.error("Error fetching assigned team members", error);
     }
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const res = await fetch("/api/projects", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${localStorage.getItem("token")}` 
+        },
         body: JSON.stringify(formData),
       });
       const data = await res.json();
       if (data.success) {
-        toast.success("Project created!");
+        toast.success("Project created successfully!");
         setFormData({ name: "", description: "", startDate: "", endDate: "" });
         fetchProjects();
+        setActiveTab("projects");
       }
     } catch (error) {
       console.error("Error creating project", error);
+      toast.error("Failed to create project");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -87,10 +101,7 @@ export default function Project() {
       return;
     }
   
-    // Get already assigned members for the selected project
     const existingMembers = teamAssignments[selectedProject]?.map(member => member._id) || [];
-  
-    // Filter out members that are already assigned
     const newMembers = selectedMembers.filter(memberId => !existingMembers.includes(memberId));
   
     if (newMembers.length === 0) {
@@ -98,11 +109,15 @@ export default function Project() {
       return;
     }
   
+    setIsLoading(true);
     try {
       const res = await fetch("/api/team/add", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
-        body: JSON.stringify({ projectId: selectedProject, members: newMembers }), // Use filtered members
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${localStorage.getItem("token")}` 
+        },
+        body: JSON.stringify({ projectId: selectedProject, members: newMembers }),
       });
   
       const data = await res.json();
@@ -110,117 +125,267 @@ export default function Project() {
         toast.success("Team members assigned successfully!");
         setSelectedMembers([]);
         fetchProjects();
-        fetchAssignedMembers(projects); // Refresh assigned members
       }
     } catch (error) {
       console.error("Error assigning members", error);
+      toast.error("Failed to assign members");
+    } finally {
+      setIsLoading(false);
     }
   };
-  
 
   return (
-    <div className="container mx-auto p-6 pt-16">
-      <form onSubmit={handleSubmit} className="mt-6 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-        <h3 className="text-xl font-semibold mb-4">Create New Project</h3>
-        <input 
-          type="text" 
-          placeholder="Project Name" 
-          className="input-field border rounded-lg p-2 w-full" 
-          value={formData.name} 
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-          required 
-        />
-        <textarea 
-          placeholder="Description" 
-          className="input-field border rounded-lg p-2 w-full" 
-          value={formData.description} 
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
-          required 
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <input 
-            type="date" 
-            className="input-field border rounded-lg p-2 w-full" 
-            value={formData.startDate} 
-            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} 
-            required 
-          />
-          <input 
-            type="date" 
-            className="input-field border rounded-lg p-2 w-full" 
-            value={formData.endDate} 
-            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} 
-            required 
-          />
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">Project Management</h1>
+        
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-200 mb-6">
+          <button
+            onClick={() => setActiveTab("projects")}
+            className={`px-4 py-2 font-medium text-sm ${activeTab === "projects" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Projects
+          </button>
+          <button
+            onClick={() => setActiveTab("create")}
+            className={`px-4 py-2 font-medium text-sm ${activeTab === "create" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Create Project
+          </button>
+          <button
+            onClick={() => setActiveTab("assign")}
+            className={`px-4 py-2 font-medium text-sm ${activeTab === "assign" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Assign Team
+          </button>
         </div>
-        <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 mt-4">Create Project</button>
-      </form>
-  
-      <div className="mt-6 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-        <h3 className="text-lg font-semibold mb-4">Assign Team Members</h3>
-        <select onChange={(e) => setSelectedProject(e.target.value)} className="input-field border rounded-lg p-2 w-full">
-          <option value="">Select Project</option>
-          {projects.map((project) => (
-            <option key={project._id} value={project._id}>{project.name}</option>
-          ))}
-        </select>
-        <div className="mt-4">
-          <h4 className="font-semibold mb-2">Select Members</h4>
-          {teamMembers.map((member) => (
-            <div key={member._id} className="flex items-center mb-2">
-              <input 
-                type="checkbox" 
-                value={member._id} 
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelectedMembers([...selectedMembers, member._id]);
-                  } else {
-                    setSelectedMembers(selectedMembers.filter((id) => id !== member._id));
-                  }
-                }}
-                className="mr-2"
-              />
-              <label>{member.name} ({member.email})</label>
+
+        {/* Create Project Form */}
+        {activeTab === "create" && (
+          <div className="bg-white rounded-xl shadow-md p-6 mb-8 transition-all duration-300 hover:shadow-lg">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Create New Project</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="projectName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Project Name
+                </label>
+                <input
+                  id="projectName"
+                  type="text"
+                  placeholder="Enter project name"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  placeholder="Enter project description"
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Start Date
+                  </label>
+                  <input
+                    id="startDate"
+                    type="date"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    End Date
+                  </label>
+                  <input
+                    id="endDate"
+                    type="date"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full md:w-auto px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-70"
+              >
+                {isLoading ? "Creating..." : "Create Project"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Assign Team Members */}
+        {activeTab === "assign" && (
+          <div className="bg-white rounded-xl shadow-md p-6 mb-8 transition-all duration-300 hover:shadow-lg">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Assign Team Members</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="projectSelect" className="block text-sm font-medium text-gray-700 mb-1">
+                  Select Project
+                </label>
+                <select
+                  id="projectSelect"
+                  onChange={(e) => setSelectedProject(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                >
+                  <option value="">Choose a project...</option>
+                  {projects.map((project) => (
+                    <option key={project._id} value={project._id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium text-gray-800 mb-3">Select Team Members</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {teamMembers.map((member) => (
+                    <div
+                      key={member._id}
+                      className={`p-3 border rounded-lg cursor-pointer transition ${selectedMembers.includes(member._id) ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}
+                      onClick={() => {
+                        if (selectedMembers.includes(member._id)) {
+                          setSelectedMembers(selectedMembers.filter((id) => id !== member._id));
+                        } else {
+                          setSelectedMembers([...selectedMembers, member._id]);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center">
+                        <div className={`w-4 h-4 rounded border mr-3 flex items-center justify-center ${selectedMembers.includes(member._id) ? "bg-blue-500 border-blue-500" : "border-gray-300"}`}>
+                          {selectedMembers.includes(member._id) && (
+                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-800">{member.name}</p>
+                          <p className="text-sm text-gray-500">{member.email}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={assignMembersToProject}
+                disabled={isLoading || !selectedProject || selectedMembers.length === 0}
+                className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isLoading ? "Assigning..." : "Assign Members"}
+              </button>
             </div>
-          ))}
-        </div>
-        <button onClick={assignMembersToProject} className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 mt-4">Assign Members</button>
-      </div>
-  
-      <h3 className="text-xl font-semibold mt-6">All Projects</h3>
-      <table className="w-full border-collapse border border-gray-300 mt-4">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border p-2">Project Name</th>
-            <th className="border p-2">Description</th>
-            <th className="border p-2">Start Date</th>
-            <th className="border p-2">End Date</th>
-            <th className="border p-2">Team Members</th>
-          </tr>
-        </thead>
-        <tbody>
-          {projects.map((project) => (
-            <tr key={project._id} className="border">
-              <td className="border p-2">{project.name}</td>
-              <td className="border p-2">{project.description}</td>
-              <td className="border p-2">{new Date(project.startDate).toDateString()}</td>
-              <td className="border p-2">{new Date(project.endDate).toDateString()}</td>
-              <td className="border p-2">
-                {teamAssignments[project._id]?.length > 0 ? (
-                  <ul className="list-disc ml-4">
-                    {teamAssignments[project._id].map((member) => (
-                      <li key={member._id} className="text-sm">{member.name} ({member.email})</li>
+          </div>
+        )}
+
+        {/* Projects List */}
+        {activeTab === "projects" && (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-2xl font-semibold text-gray-800">All Projects</h2>
+              <button
+                onClick={() => setActiveTab("create")}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition"
+              >
+                + New Project
+              </button>
+            </div>
+
+            {isLoading ? (
+              <div className="p-8 flex justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : projects.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">
+                No projects found. Create your first project!
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Project Name
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Description
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Timeline
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Team Members
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {projects.map((project) => (
+                      <tr key={project._id} className="hover:bg-gray-50 transition">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-medium text-gray-900">{project.name}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-gray-600 max-w-xs truncate">{project.description}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            <div>{new Date(project.startDate).toLocaleDateString()}</div>
+                            <div className="text-xs text-gray-400">to</div>
+                            <div>{new Date(project.endDate).toLocaleDateString()}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {teamAssignments[project._id]?.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {teamAssignments[project._id].map((member) => (
+                                <span
+                                  key={member._id}
+                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                >
+                                  {member.name}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">No members assigned</span>
+                          )}
+                        </td>
+                      </tr>
                     ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-gray-500">No team members assigned.</p>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
-  
 }
