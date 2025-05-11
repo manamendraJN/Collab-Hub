@@ -252,7 +252,7 @@ const handlePreviewFile = (file) => {
       </div>
     ) : (
       <div className="overflow-x-auto shadow-lg ring-1 ring-black ring-opacity-5 rounded-lg">
-       <table className="min-w-full divide-y divide-gray-300">
+      <table className="min-w-full divide-y divide-gray-300">
   <thead className="bg-gray-100">
     <tr>
       <th className="py-4 pl-6 pr-4 text-left text-sm font-semibold text-gray-800">Filename</th>
@@ -272,7 +272,7 @@ const handlePreviewFile = (file) => {
             {/* Download Button with Emoji */}
             <a
               href={`http://localhost:5000/api/files/download/${file._id}`}
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105"
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold opacity-80 hover:opacity-100 transition-all duration-300 ease-in-out transform hover:scale-105"
             >
               ⬇️ Download
             </a>
@@ -281,7 +281,7 @@ const handlePreviewFile = (file) => {
             <button
               onClick={() => handleFileDelete(file._id)}
               disabled={isDeleting}
-              className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ease-in-out ${isDeleting ? 'bg-red-300 cursor-not-allowed text-white' : 'bg-red-600 hover:bg-red-700 text-white transform hover:scale-105'}`}
+              className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold opacity-80 transition-all duration-300 ease-in-out ${isDeleting ? 'bg-red-300 cursor-not-allowed text-white' : 'bg-red-600 hover:bg-red-700 text-white transform hover:scale-105 hover:opacity-100'}`}
             >
               🗑️ {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
@@ -292,7 +292,7 @@ const handlePreviewFile = (file) => {
                 setFileToUpdate(file);
                 resetForm();
               }}
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-all duration-300 ease-in-out transform hover:scale-105"
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold opacity-80 hover:opacity-100 transition-all duration-300 ease-in-out transform hover:scale-105"
             >
               ✏️ Update
             </button>
@@ -300,7 +300,7 @@ const handlePreviewFile = (file) => {
             {/* Versions Button with Emoji */}
             <button
               onClick={() => fetchVersions(file._id)}
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-yellow-600 text-white text-sm font-semibold hover:bg-yellow-700 transition-all duration-300 ease-in-out transform hover:scale-105"
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-yellow-600 text-white text-sm font-semibold opacity-80 hover:opacity-100 transition-all duration-300 ease-in-out transform hover:scale-105"
             >
               📜 Versions
             </button>
@@ -308,7 +308,7 @@ const handlePreviewFile = (file) => {
             {/* Preview Button with Emoji */}
             <button
               onClick={() => handlePreviewFile(file)} // This triggers the preview function
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105"
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold opacity-80 hover:opacity-100 transition-all duration-300 ease-in-out transform hover:scale-105"
             >
               👁️ Preview
             </button>
@@ -333,7 +333,7 @@ const handlePreviewFile = (file) => {
                         <button
                           onClick={() => handleRestoreVersion(file._id, v.versionNumber)}
                           disabled={restoringVersion === v.versionNumber}
-                          className={`px-4 py-2 text-sm rounded-lg text-white ${restoringVersion === v.versionNumber ? 'bg-yellow-400 cursor-not-allowed' : 'bg-yellow-600 hover:bg-yellow-700 transform hover:scale-105'}`}
+                          className={`px-4 py-2 text-sm rounded-lg text-white opacity-80 ${restoringVersion === v.versionNumber ? 'bg-yellow-400 cursor-not-allowed' : 'bg-yellow-600 hover:bg-yellow-700 transform hover:scale-105 hover:opacity-100'}`}
                         >
                           🔄 Restore
                         </button>
@@ -349,6 +349,7 @@ const handlePreviewFile = (file) => {
     ))}
   </tbody>
 </table>
+
 
       </div>
     )}
