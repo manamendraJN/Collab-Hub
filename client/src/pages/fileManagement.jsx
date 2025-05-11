@@ -268,53 +268,57 @@ const handlePreviewFile = (file) => {
           <td className="whitespace-nowrap py-4 pl-6 pr-4 text-sm font-medium text-gray-900">{file.filename}</td>
           <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600">{formatFileSize(file.size)}</td>
           <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600">{new Date(file.uploadDate).toLocaleDateString()}</td>
-          <td className="whitespace-nowrap px-4 py-4 text-sm flex gap-4">
-            {/* Download Button with Emoji */}
+          <td className="whitespace-nowrap px-4 py-4 text-sm flex gap-4 flex-wrap">
+            {/* Download */}
             <a
               href={`http://localhost:5000/api/files/download/${file._id}`}
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold opacity-80 hover:opacity-100 transition-all duration-300 ease-in-out transform hover:scale-105"
+              className="inline-flex items-center px-4 py-2 rounded-lg border border-blue-800 text-blue-900 font-bold text-sm bg-blue-100 bg-opacity-50 hover:scale-105 transition-all duration-300"
             >
               ⬇️ Download
             </a>
-            
-            {/* Delete Button with Emoji */}
+
+            {/* Delete */}
             <button
               onClick={() => handleFileDelete(file._id)}
               disabled={isDeleting}
-              className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold opacity-80 transition-all duration-300 ease-in-out ${isDeleting ? 'bg-red-300 cursor-not-allowed text-white' : 'bg-red-600 hover:bg-red-700 text-white transform hover:scale-105 hover:opacity-100'}`}
+              className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-bold border ${
+                isDeleting
+                  ? 'bg-red-100 bg-opacity-50 border-red-300 text-red-700 cursor-not-allowed'
+                  : 'bg-red-100 bg-opacity-50 border-red-800 text-red-900 hover:scale-105 transition-all duration-300'
+              }`}
             >
               🗑️ {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
-            
-            {/* Update Button with Emoji */}
+
+            {/* Update */}
             <button
               onClick={() => {
                 setFileToUpdate(file);
                 resetForm();
               }}
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold opacity-80 hover:opacity-100 transition-all duration-300 ease-in-out transform hover:scale-105"
+              className="inline-flex items-center px-4 py-2 rounded-lg border border-green-800 text-green-900 font-bold text-sm bg-green-100 bg-opacity-50 hover:scale-105 transition-all duration-300"
             >
               ✏️ Update
             </button>
-            
-            {/* Versions Button with Emoji */}
+
+            {/* Versions */}
             <button
               onClick={() => fetchVersions(file._id)}
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-yellow-600 text-white text-sm font-semibold opacity-80 hover:opacity-100 transition-all duration-300 ease-in-out transform hover:scale-105"
+              className="inline-flex items-center px-4 py-2 rounded-lg border border-yellow-700 text-yellow-900 font-bold text-sm bg-yellow-100 bg-opacity-50 hover:scale-105 transition-all duration-300"
             >
               📜 Versions
             </button>
 
-            {/* Preview Button with Emoji */}
+            {/* Preview */}
             <button
-              onClick={() => handlePreviewFile(file)} // This triggers the preview function
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold opacity-80 hover:opacity-100 transition-all duration-300 ease-in-out transform hover:scale-105"
+              onClick={() => handlePreviewFile(file)}
+              className="inline-flex items-center px-4 py-2 rounded-lg border border-purple-800 text-purple-900 font-bold text-sm bg-purple-100 bg-opacity-50 hover:scale-105 transition-all duration-300"
             >
               👁️ Preview
             </button>
           </td>
         </tr>
-        
+
         {/* Versions Dropdown */}
         {showVersions === file._id && (
           <tr className="bg-gray-50">
@@ -333,7 +337,11 @@ const handlePreviewFile = (file) => {
                         <button
                           onClick={() => handleRestoreVersion(file._id, v.versionNumber)}
                           disabled={restoringVersion === v.versionNumber}
-                          className={`px-4 py-2 text-sm rounded-lg text-white opacity-80 ${restoringVersion === v.versionNumber ? 'bg-yellow-400 cursor-not-allowed' : 'bg-yellow-600 hover:bg-yellow-700 transform hover:scale-105 hover:opacity-100'}`}
+                          className={`px-4 py-2 text-sm rounded-lg font-bold border ${
+                            restoringVersion === v.versionNumber
+                              ? 'bg-yellow-100 bg-opacity-50 border-yellow-300 text-yellow-700 cursor-not-allowed'
+                              : 'bg-yellow-100 bg-opacity-50 border-yellow-700 text-yellow-900 hover:scale-105 transition-all duration-300'
+                          }`}
                         >
                           🔄 Restore
                         </button>
