@@ -1,23 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bar } from "react-chartjs-2";
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from "chart.js";
-
-// Register Chart.js components
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
-
-// Function to assign emojis and colors based on categories
-const getProjectStyle = (category) => {
-  const styles = {
-    development: { emoji: "💻", color: "bg-blue-100 border-blue-400" },
-    marketing: { emoji: "📢", color: "bg-purple-100 border-purple-400" },
-    design: { emoji: "🎨", color: "bg-yellow-100 border-yellow-400" },
-    finance: { emoji: "💰", color: "bg-green-100 border-green-400" },
-    research: { emoji: "🔬", color: "bg-red-100 border-red-400" },
-    general: { emoji: "📌", color: "bg-gray-100 border-gray-400" },
-  };
-  return styles[category.toLowerCase()] || styles.general;
-};
 
 // Function to check if a project can be deleted (due date is at least one month ago)
 const canDeleteProject = (endDate) => {
@@ -31,6 +13,8 @@ const canDeleteProject = (endDate) => {
 export default function Project() {
   const [projects, setProjects] = useState([]);
   const [errorMessage, setErrorMessage] = useState(""); // Error message state
+  const [searchTerm, setSearchTerm] = useState(""); // For search functionality
+  const [filterStatus, setFilterStatus] = useState("All"); // Filter by status
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,113 +33,68 @@ export default function Project() {
     }
   };
 
-  const deleteProject = async (projectId, endDate) => {
-    // Check if the project can be deleted based on due date
-    if (!canDeleteProject(endDate)) {
-      setErrorMessage("You cannot delete this project because its due date is within the last month.");
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/projects/${projectId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      if (res.ok) {
-        setProjects(projects.filter((project) => project._id !== projectId));
-        setErrorMessage(""); // Clear any previous error message
-      } else {
-        console.error("Error deleting project");
-      }
-    } catch (error) {
-      console.error("Error deleting project", error);
-    }
+  const handleView = (projectId) => {
+    navigate(`/project/${projectId}`);
   };
 
-  const updateProject = (projectId) => {
-    navigate(`/edit-project/${projectId}`);
+  const handleCreateTeam = (projectId) => {
+    navigate(`/create-team/${projectId}`);
   };
 
-  // Categorizing projects based on status
-  const pendingProjects = projects.filter((p) => p.status === "Pending");
-  const inProgressProjects = projects.filter((p) => p.status === "In Progress");
-  const completedProjects = projects.filter((p) => p.status === "Completed");
-
-  // Chart Data for Completed vs All Projects
-  const completedVsAllData = {
-    labels: ["Completed", "All Projects"],
-    datasets: [
-      {
-        label: "Completed vs All",
-        data: [
-          completedProjects.length,
-          projects.length
-        ],
-        backgroundColor: ["rgba(75, 192, 192, 0.6)", "rgba(153, 102, 255, 0.6)"],
-      },
-    ],
-  };
-
-  // Chart Data for Not Completed vs All Projects
-  const notCompletedVsAllData = {
-    labels: ["Not Completed", "All Projects"],
-    datasets: [
-      {
-        label: "Not Completed vs All",
-        data: [
-          projects.length - completedProjects.length,
-          projects.length
-        ],
-        backgroundColor: ["rgba(255, 99, 132, 0.6)", "rgba(153, 102, 255, 0.6)"],
-      },
-    ],
-  };
-
-  const renderProjectList = (projectList, title, titleColor) => (
-    <div className="my-8">
-      <h3 className={`text-2xl font-bold ${titleColor}`}>{title}</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-        {projectList.map((project) => {
-          const { emoji, color } = getProjectStyle(project.category || "general");
-          return (
-            <div
-              key={project._id}
-              className={`p-6 rounded-lg border-l-4 ${color} shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer`}
-              onClick={() => navigate(`/project/${project._id}`)} // Clicking the box navigates to details page
-            >
-              <h4 className="font-semibold text-lg flex items-center">{emoji} {project.name}</h4>
-              <p className="text-sm text-gray-700 mt-2">{project.description}</p>
-              <p className="text-xs text-gray-500 mt-1">Due: {new Date(project.endDate).toLocaleDateString()}</p>
-              <div className="mt-4 flex justify-between items-center">
-                <button
-                  className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevents navigating when clicking edit
-                    updateProject(project._id);
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  className="text-red-600 hover:text-red-800 transition-colors duration-200"
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevents navigating when clicking delete
-                    deleteProject(project._id, project.endDate);
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+  // Filter projects based on search term and status
+  const filteredProjects = projects.filter((project) => {
+    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "All" || project.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="container mx-auto p-8">
-      <h2 className="text-4xl font-semibold mb-6 text-gray-800">📁 Projects Overview</h2>
+      <h2 className="text-3xl font-semibold text-gray-800">Projects</h2>
+      <p className="text-gray-600 mb-4">Manage and track all your projects</p>
+
+      {/* Search Bar, Filter, and New Project Button */}
+      <div className="flex justify-between items-center mb-6 space-x-4">
+        <input
+          type="text"
+          placeholder="Search projects..."
+          className="w-1/3 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <div className="relative flex items-center">
+          <svg
+            className="w-5 h-5 text-gray-500 absolute left-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v3.172a1 1 0 01-.293.707l-2 2A1 1 0 0111 21v-5.586a1 1 0 00-.293-.707L4.293 8.293A1 1 0 014 7.586V4z"
+            ></path>
+          </svg>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="pl-8 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+          >
+            <option value="All">All</option>
+            <option value="At Risk">At Risk</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+        <button
+          onClick={() => navigate("/create-project")}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+        >
+          + New Project
+        </button>
+      </div>
 
       {/* Error Message */}
       {errorMessage && (
@@ -164,33 +103,72 @@ export default function Project() {
         </div>
       )}
 
-      {/* Charts */}
-      <div className="my-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="shadow-lg p-6 rounded-lg bg-white">
-          <h3 className="text-2xl font-semibold text-center mb-4">Completed vs All Projects</h3>
-          <Bar data={completedVsAllData} options={{ responsive: true, plugins: { legend: { position: "top" } } }} />
-        </div>
-        <div className="shadow-lg p-6 rounded-lg bg-white">
-          <h3 className="text-2xl font-semibold text-center mb-4">Not Completed vs All Projects</h3>
-          <Bar data={notCompletedVsAllData} options={{ responsive: true, plugins: { legend: { position: "top" } } }} />
-        </div>
-      </div>
-
-      {/* Pending Projects */}
-      {renderProjectList(pendingProjects, "🕒 Pending Projects", "text-yellow-600")}
-
-      {/* In Progress Projects */}
-      {renderProjectList(inProgressProjects, "🔄 In Progress Projects", "text-blue-700")}
-
-      {/* Completed Projects */}
-      {renderProjectList(completedProjects, "✅ Completed Projects", "text-green-700")}
-
-      {/* New Project Button */}
-      <div
-        className="mt-8 p-6 text-center border-2 border-dashed rounded-lg bg-gray-100 hover:bg-gray-200 cursor-pointer transition-all duration-300"
-        onClick={() => navigate("/create-project")}
-      >
-        <span className="text-xl font-semibold text-purple-600">➕ Create New Project</span>
+      {/* Project List */}
+      <div className="mt-4">
+        {filteredProjects.length > 0 ? (
+          filteredProjects.map((project) => (
+            <div
+              key={project._id}
+              className="p-4 border rounded-lg bg-gray-100 shadow-md mb-4 flex justify-between items-start"
+            >
+              <div>
+                <div className="flex items-center">
+                  <h3 className="text-xl font-bold">{project.name}</h3>
+                  <span
+                    className={`ml-2 inline-block px-2 py-1 text-sm font-semibold rounded-full ${
+                      project.status === "At Risk"
+                        ? "bg-red-100 text-red-600"
+                        : project.status === "In Progress"
+                        ? "bg-blue-100 text-blue-600"
+                        : "bg-green-100 text-green-600"
+                    }`}
+                  >
+                    {project.status}
+                  </span>
+                </div>
+                <p className="text-gray-700 mt-2">{project.description}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  <span className="inline-flex items-center">
+                    🕒 Due {new Date(project.endDate).toLocaleDateString()}
+                  </span>
+                  <span className="inline-flex items-center ml-4">
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 005.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      ></path>
+                    </svg>
+                    4 members
+                  </span>
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleView(project._id)}
+                  className="bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600 text-sm"
+                >
+                  View
+                </button>
+                <button
+                  onClick={() => handleCreateTeam(project._id)}
+                  className="bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600 text-sm"
+                >
+                  Create Team
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-600">No projects match your search or filter.</p>
+        )}
       </div>
     </div>
   );
