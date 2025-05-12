@@ -293,7 +293,7 @@ export default function Messages() {
                                 <p className="text-xs text-gray-500">
                                   {new Date(msg.createdAt).toLocaleString()}
                                 </p>
-                                {(msg.sender._id === user.id || userType === "admin") && (
+                                {(msg.sender._id === user.id) && (
                                   <div className="mt-2">
                                     {msg.sender._id === user.id && (
                                       <button
