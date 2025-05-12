@@ -114,6 +114,22 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("typing", (data) => {
+    console.log(`${data.username} is typing in project ${data.projectId}`);
+    socket.to(data.projectId.toString()).emit("userTyping", {
+      id: data.id,
+      username: data.username,
+    });
+  });
+
+  socket.on("stopTyping", (data) => {
+    console.log(`${data.username} stopped typing in project ${data.projectId}`);
+    socket.to(data.projectId.toString()).emit("userStoppedTyping", {
+      id: data.id,
+      username: data.username,
+    });
+  });
+
   socket.on("sendMessage", async ({ projectId, content }) => {
     try {
       console.log(`sendMessage: user=${socket.user.id}, type=${socket.user.type}, projectId=${projectId}, content=${content}`);

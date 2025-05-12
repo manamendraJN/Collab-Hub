@@ -17,6 +17,7 @@ export default function Messages() {
   const [editingMessage, setEditingMessage] = useState(null);
   const [editContent, setEditContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [typingUsers, setTypingUsers] = useState([]);
   const user = JSON.parse(localStorage.getItem("user")) || { id: "", username: "", email: "" };
   const userType = user.token ? "client" : "admin";
 
@@ -65,6 +66,21 @@ export default function Messages() {
       toast.error(message);
     });
 
+    socket.on("userTyping", (data) => {
+      console.log(`User typing: ${data.username}`);
+      setTypingUsers((prev) => {
+        if (!prev.some((u) => u.id === data.id) && data.id !== user.id) {
+          return [...prev, { id: data.id, username: data.username }];
+        }
+        return prev;
+      });
+    });
+
+    socket.on("userStoppedTyping", (data) => {
+      console.log(`User stopped typing: ${data.username}`);
+      setTypingUsers((prev) => prev.filter((u) => u.id !== data.id));
+    });
+
     return () => {
       socket.off("connect");
       socket.off("disconnect");
@@ -72,6 +88,8 @@ export default function Messages() {
       socket.off("newMessage");
       socket.off("messageSent");
       socket.off("error");
+      socket.off("userTyping");
+      socket.off("userStoppedTyping");
     };
   }, [selectedProject]);
 
@@ -134,7 +152,7 @@ export default function Messages() {
       projectId: selectedProject.toString(),
       content: newMessage,
     });
-
+    socket.emit("stopTyping", { id: user.id, username: user.username, projectId: selectedProject });
     setNewMessage("");
   };
 
@@ -171,6 +189,14 @@ export default function Messages() {
       toast.error("Failed to delete message");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleTyping = () => {
+    if (newMessage.trim() && selectedProject) {
+      socket.emit("typing", { id: user.id, username: user.username, projectId: selectedProject });
+    } else if (!newMessage.trim() && selectedProject) {
+      socket.emit("stopTyping", { id: user.id, username: user.username, projectId: selectedProject });
     }
   };
 
@@ -295,13 +321,25 @@ export default function Messages() {
                       );
                     })
                   )}
+                  {typingUsers.length > 0 && (
+                    <div className="text-sm text-gray-600 mt-2">
+                      {typingUsers.length === 1
+                        ? `${typingUsers[0].username} is typing...`
+                        : `${typingUsers
+                            .map((u) => u.username)
+                            .join(", ")} are typing...`}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex space-x-2">
                   <input
                     type="text"
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={(e) => {
+                      setNewMessage(e.target.value);
+                      handleTyping();
+                    }}
                     placeholder="Type a message..."
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
                   />
