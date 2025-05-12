@@ -69,3 +69,16 @@ export const getAssignedMembers = async (req, res) => {
   }
 };
 
+// team.controller.js (add to existing file)
+export const getAssignedProjects = async (req, res) => {
+  try {
+    const memberId = req.user.id; // TeamMember ID from JWT
+
+    const teams = await Team.find({ members: memberId }).populate("project", "name description");
+    const projects = teams.map((team) => team.project);
+
+    res.status(200).json({ success: true, projects });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error fetching assigned projects", error: error.message });
+  }
+};
