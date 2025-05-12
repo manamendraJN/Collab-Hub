@@ -22,7 +22,7 @@ export default function TaskManagement() {
   const [activeSection, setActiveSection] = useState("view");
   const [workloadScores, setWorkloadScores] = useState([]);
   const [isWorkloadExpanded, setIsWorkloadExpanded] = useState(false);
-  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false); // New state for dialog
+  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -105,15 +105,35 @@ export default function TaskManagement() {
       const res = await fetch(`/api/team/${projectId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
+      if (!res.ok) {
+        if (res.status === 404) {
+          // No team found for this project, set empty members array
+          setAllocatedMembers((prev) => ({
+            ...prev,
+            [projectId]: [],
+          }));
+          return;
+        }
+        throw new Error(`HTTP error ${res.status}`);
+      }
       const data = await res.json();
       if (data.success) {
         setAllocatedMembers((prev) => ({
           ...prev,
-          [projectId]: data.team.members,
+          [projectId]: data.team.members || [],
+        }));
+      } else {
+        setAllocatedMembers((prev) => ({
+          ...prev,
+          [projectId]: [],
         }));
       }
     } catch (error) {
-      console.error("Error fetching allocated team members", error);
+      console.error(`Error fetching allocated team members for project ${projectId}:`, error.message);
+      setAllocatedMembers((prev) => ({
+        ...prev,
+        [projectId]: [],
+      }));
     }
   };
 
@@ -155,7 +175,7 @@ export default function TaskManagement() {
           },
         }));
         fetchTasks(projectId);
-        setIsTaskFormOpen(false); // Close dialog on success
+        setIsTaskFormOpen(false);
         setActiveSection("view");
       } else {
         toast.error(data.message || "Failed to create task");
@@ -197,52 +217,11 @@ export default function TaskManagement() {
     }
   };
 
-  const handleEditMember = async (taskId, projectId, newMemberId) => {
-    if (!window.confirm("Are you sure you want to change the team member?"))
-      return;
-    try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ assignedMember: newMemberId }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success("Team member updated successfully!");
-        fetchTasks(projectId);
-      } else {
-        toast.error(data.message || "Failed to update team member");
-      }
-    } catch (error) {
-      console.error("Error updating team member:", error);
-      toast.error("Something went wrong. Please try again.");
-    }
-  };
-
-  const handleUpdateStatus = async (taskId, newStatus, projectId) => {
-    try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success("Task status updated successfully!");
-        fetchTasks(projectId);
-      } else {
-        toast.error(data.message || "Failed to update task status");
-      }
-    } catch (error) {
-      console.error("Error updating task status:", error);
-      toast.error("Something went wrong. Please try again.");
-    }
+  const handleTasksUpdated = (projectId, updatedTasks) => {
+    setTasks((prev) => ({
+      ...prev,
+      [projectId]: updatedTasks,
+    }));
   };
 
   const getSelectStyle = (status) => {
@@ -292,7 +271,7 @@ export default function TaskManagement() {
             <SectionToggle
               activeSection={activeSection}
               setActiveSection={setActiveSection}
-              setIsTaskFormOpen={setIsTaskFormOpen} // Pass dialog control
+              setIsTaskFormOpen={setIsTaskFormOpen}
             />
             {activeSection === "view" && (
               <TaskView
@@ -303,12 +282,11 @@ export default function TaskManagement() {
                 setFilterPriority={setFilterPriority}
                 filterComplexity={filterComplexity}
                 setFilterComplexity={setFilterComplexity}
-                handleUpdateStatus={handleUpdateStatus}
-                handleEditMember={handleEditMember}
                 handleDeleteTask={handleDeleteTask}
                 selectedProjectId={selectedProjectId}
                 allocatedMembers={allocatedMembers}
                 getSelectStyle={getSelectStyle}
+                onTasksUpdated={(updatedTasks) => handleTasksUpdated(selectedProjectId, updatedTasks)}
               />
             )}
             <TaskForm
