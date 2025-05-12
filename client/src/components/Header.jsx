@@ -30,14 +30,14 @@ export default function Layout({ children }) {
     { name: "Tasks", path: "/tasks", icon: ClipboardList },
     { name: "Team", path: "/team-members", icon: Users },
     { name: "Messages", path: "/messages", icon: MessageSquare },
-    { name: "files", path: "/file", icon: File },
+    { name: "Files", path: "/file", icon: File },
     { name: "Profile", path: "/profile", icon: User },
     { name: "About", path: "/about", icon: Info },
   ];
 
   const sidebarVariants = {
-    open: { width: "15rem", transition: { duration: 0.3, ease: "easeInOut" } },
-    closed: { width: "4rem", transition: { duration: 0.3, ease: "easeInOut" } },
+    open: { width: "14rem", transition: { duration: 0.25, ease: "easeInOut" } },
+    closed: { width: "3.5rem", transition: { duration: 0.25, ease: "easeInOut" } },
   };
 
   const handleToggleSidebar = () => {
@@ -45,65 +45,65 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Sidebar */}
         <motion.aside
           variants={sidebarVariants}
           initial="open"
           animate={isSidebarOpen ? "open" : "closed"}
-          className="fixed top-0 left-0 h-screen bg-white shadow-lg z-50 border-r border-gray-200"
+          className="fixed top-0 left-0 h-screen bg-white shadow border-r border-gray-200 z-50"
         >
           <div className="flex flex-col h-full">
             {/* Logo & Toggle */}
-            <div className="p-5 flex items-center justify-between bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <div className="p-4 flex items-center justify-between bg-gray-800 text-white">
               <AnimatePresence>
                 {isSidebarOpen && (
                   <motion.div
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
+                    exit={{ opacity: 0, x: -10 }}
                     className="flex items-center space-x-2"
                   >
-                    <span className="text-2xl font-extrabold">RemoteCollab</span>
+                    <span className="text-xl font-semibold">RemoteCollab</span>
                   </motion.div>
                 )}
               </AnimatePresence>
               <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleToggleSidebar}
-                className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-colors focus:outline-none"
+                className="p-1.5 rounded-md bg-gray-700 text-white hover:bg-gray-600 transition-colors focus:outline-none"
               >
-                {isSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+                {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
               </motion.button>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-3 py-6 space-y-2">
+            <nav className="flex-1 px-2 py-5 space-y-1">
               {menuItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.path}
-                  className={`flex items-center p-3 rounded-xl text-sm font-medium transition-all duration-200
+                  className={`flex items-center p-2 rounded-md text-sm font-medium transition-all duration-200
                     ${location.pathname === item.path 
-                      ? "bg-blue-500 text-white shadow-md" 
-                      : "text-gray-700 hover:bg-gray-200 hover:text-blue-700"
+                      ? "bg-teal-600 text-white" 
+                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                     }`}
                 >
                   <motion.div
-                    whileHover={{ scale: 1.1 }}
+                    whileHover={{ scale: 1.05 }}
                     className="min-w-[2rem] flex justify-center"
                   >
-                    <item.icon size={20} />
+                    <item.icon size={18} />
                   </motion.div>
                   <AnimatePresence>
                     {isSidebarOpen && (
                       <motion.span
-                        initial={{ opacity: 0, x: -10 }}
+                        initial={{ opacity: 0, x: -5 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
-                        className="ml-3"
+                        exit={{ opacity: 0, x: -5 }}
+                        className="ml-2"
                       >
                         {item.name}
                       </motion.span>
@@ -118,61 +118,50 @@ export default function Layout({ children }) {
         {/* Main Content */}
         <main
           className={`flex-1 transition-all duration-300 ${
-            isSidebarOpen ? "ml-60" : "ml-16"
+            isSidebarOpen ? "ml-56" : "ml-14"
           }`}
         >
-          {/* Animated Welcome Banner */}
+          {/* Header */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="sticky top-0 z-40 px-6 py-4 bg-white shadow-md flex items-center justify-between border-b border-gray-200"
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="sticky top-0 z-40 px-5 py-3 bg-white shadow border-b border-gray-200 flex items-center justify-between"
           >
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <motion.div
-                animate={{ 
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 10, -10, 0]
-                }}
-                transition={{ 
-                  duration: 1.5,
-                  repeat: Infinity,
-                  repeatDelay: 2
-                }}
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 0.8, repeat: 1 }}
               >
-                <Star size={22} className="text-yellow-400" />
+                <Star size={20} className="text-gray-600" />
               </motion.div>
-              <div className="h-11">
-                <h1 className="text-lg font-bold text-gray-800">
-                  Hi, Team Star!
+              <div>
+                <h1 className="text-base font-medium text-gray-900">
+                  Welcome, Team Star
                 </h1>
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                  className="text-sm text-gray-600 flex items-center"
+                  transition={{ delay: 0.2, duration: 0.4 }}
+                  className="text-xs text-gray-600 flex items-center"
                 >
-                  Ready to shine today?
-                  <motion.span
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.2, repeat: Infinity }}
-                    className="ml-1"
-                  >
-                    <Rocket size={14} className="text-blue-500" />
-                  </motion.span>
+                  Ready to get started?
+                  <span className="ml-1">
+                    <Rocket size={12} className="text-teal-600" />
+                  </span>
                 </motion.p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <motion.span
-                whileHover={{ scale: 1.05 }}
-                className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full"
+                whileHover={{ scale: 1.03 }}
+                className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-md"
               >
                 {new Date().toLocaleDateString()}
               </motion.span>
               <motion.div
-                whileHover={{ scale: 1.1 }}
-                className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold shadow-sm"
+                whileHover={{ scale: 1.05 }}
+                className="h-7 w-7 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium text-sm"
               >
                 JD
               </motion.div>
@@ -180,7 +169,7 @@ export default function Layout({ children }) {
           </motion.div>
 
           {/* Content */}
-          <div className="p-8">
+          <div className="p-6">
             <div className="max-w-7xl mx-auto">{children}</div>
           </div>
         </main>
