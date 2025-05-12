@@ -17,11 +17,11 @@ export default function Messages() {
   const [editingMessage, setEditingMessage] = useState(null);
   const [editContent, setEditContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user")) || { id: "", username: "", email: "" };
   const userType = user.token ? "client" : "admin";
 
   useEffect(() => {
-    console.log(`User: id=${user.id}, type=${userType}`);
+    console.log(`User: id=${user.id}, type=${userType}, username=${user.username}`);
     fetchProjects();
 
     socket.on("connect", () => {
@@ -43,6 +43,10 @@ export default function Messages() {
 
     socket.on("newMessage", (message) => {
       console.log("New message received:", message);
+      if (!message.sender || !message.sender._id) {
+        console.warn("Received message with invalid sender:", message);
+        return;
+      }
       setMessages((prev) => {
         if (prev.some((msg) => msg._id === message._id)) {
           console.log("Duplicate message skipped:", message._id);
@@ -105,7 +109,7 @@ export default function Messages() {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log(`Fetched messages:`, data.messages);
-      setMessages(data.messages);
+      setMessages(data.messages.filter((msg) => msg.sender && msg.sender._id));
     } catch (error) {
       console.error("Failed to load messages:", error.message);
       toast.error("Failed to load messages");
@@ -217,73 +221,79 @@ export default function Messages() {
                   ) : messages.length === 0 ? (
                     <p className="text-gray-500 text-center">No messages yet.</p>
                   ) : (
-                    messages.map((msg) => (
-                      <div
-                        key={msg._id}
-                        className={`mb-4 ${
-                          msg.sender._id === user.id ? "text-right" : "text-left"
-                        }`}
-                      >
+                    messages.map((msg) => {
+                      if (!msg.sender || !msg.sender._id) {
+                        console.warn("Invalid message sender:", msg);
+                        return null;
+                      }
+                      return (
                         <div
-                          className={`inline-block p-3 rounded-lg ${
-                            msg.sender._id === user.id
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-gray-100 text-gray-800"
+                          key={msg._id}
+                          className={`mb-4 ${
+                            msg.sender._id === user.id ? "text-right" : "text-left"
                           }`}
                         >
-                          {editingMessage === msg._id ? (
-                            <div>
-                              <textarea
-                                value={editContent}
-                                onChange={(e) => setEditContent(e.target.value)}
-                                className="w-full p-2 border rounded"
-                              />
-                              <button
-                                onClick={() => editMessage(msg._id)}
-                                className="mt-2 mr-2 px-3 py-1 bg-green-500 text-white rounded"
-                              >
-                                Save
-                              </button>
-                              <button
-                                onClick={() => setEditingMessage(null)}
-                                className="mt-2 px-3 py-1 bg-gray-500 text-white rounded"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          ) : (
-                            <>
-                              <p className="font-medium">{msg.sender.name}</p>
-                              <p>{msg.content}</p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(msg.createdAt).toLocaleString()}
-                              </p>
-                              {(msg.sender._id === user.id || userType === "admin") && (
-                                <div className="mt-2">
-                                  {msg.sender._id === user.id && (
+                          <div
+                            className={`inline-block p-3 rounded-lg ${
+                              msg.sender._id === user.id
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {editingMessage === msg._id ? (
+                              <div>
+                                <textarea
+                                  value={editContent}
+                                  onChange={(e) => setEditContent(e.target.value)}
+                                  className="w-full p-2 border rounded"
+                                />
+                                <button
+                                  onClick={() => editMessage(msg._id)}
+                                  className="mt-2 mr-2 px-3 py-1 bg-green-500 text-white rounded"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  onClick={() => setEditingMessage(null)}
+                                  className="mt-2 px-3 py-1 bg-gray-500 text-white rounded"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <p className="font-medium">{msg.sender.name || user.username || "Unknown"}</p>
+                                <p>{msg.content}</p>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(msg.createdAt).toLocaleString()}
+                                </p>
+                                {(msg.sender._id === user.id || userType === "admin") && (
+                                  <div className="mt-2">
+                                    {msg.sender._id === user.id && (
+                                      <button
+                                        onClick={() => {
+                                          setEditingMessage(msg._id);
+                                          setEditContent(msg.content);
+                                        }}
+                                        className="text-blue-500 mr-2"
+                                      >
+                                        Edit
+                                      </button>
+                                    )}
                                     <button
-                                      onClick={() => {
-                                        setEditingMessage(msg._id);
-                                        setEditContent(msg.content);
-                                      }}
-                                      className="text-blue-500 mr-2"
+                                      onClick={() => deleteMessage(msg._id)}
+                                      className="text-red-500"
                                     >
-                                      Edit
+                                      Delete
                                     </button>
-                                  )}
-                                  <button
-                                    onClick={() => deleteMessage(msg._id)}
-                                    className="text-red-500"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              )}
-                            </>
-                          )}
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
 
