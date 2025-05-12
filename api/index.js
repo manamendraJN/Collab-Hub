@@ -61,12 +61,14 @@ io.use(async (socket, next) => {
     const user = await User.findById(decoded.id);
     if (user) {
       socket.user.type = "admin";
-      console.log(`Authenticated admin: ${decoded.id}`);
+      socket.user.username = user.username || "Unknown User"; // Fallback for username
+      console.log(`Authenticated admin: ${decoded.id}, username=${socket.user.username}`);
     } else {
       const member = await TeamMember.findById(decoded.id);
       if (member) {
         socket.user.type = "client";
-        console.log(`Authenticated client: ${decoded.id}`);
+        socket.user.username = member.username || "Unknown Member"; // Fallback for username
+        console.log(`Authenticated client: ${decoded.id}, username=${socket.user.username}`);
       } else {
         console.log(`Authentication failed: Invalid user ID ${decoded.id}`);
         return next(new Error("Authentication error: Invalid user"));
@@ -81,7 +83,7 @@ io.use(async (socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.user.id} (${socket.user.type})`);
+  console.log(`User connected: ${socket.user.id} (${socket.user.type}), username=${socket.user.username}`);
 
   socket.on("joinProject", async (projectId) => {
     try {
@@ -140,15 +142,22 @@ io.on("connection", (socket) => {
       await message.save();
       console.log(`Message saved: ${message._id}`);
 
-      const populatedMessage = await Message.findById(message._id).populate(
-        "sender",
-        "name email"
-      );
+      const populatedMessage = await Message.findById(message._id)
+        .populate("sender", "name email username")
+        .lean();
+      if (!populatedMessage.sender || !populatedMessage.sender.name) {
+        console.warn(`Invalid sender for message ${message._id}:`, populatedMessage.sender);
+        populatedMessage.sender = {
+          _id: socket.user.id,
+          name: populatedMessage.sender?.username || socket.user.username || "Unknown",
+          email: populatedMessage.sender?.email || "unknown@example.com",
+        };
+      }
       const room = projectId.toString();
       console.log(`Broadcasting message to project ${projectId} (room: ${room})`);
 
       io.to(room).emit("newMessage", populatedMessage);
-      socket.emit("messageSent", { messageId: message._id }); // Confirm to sender
+      socket.emit("messageSent", { messageId: message._id });
     } catch (error) {
       console.error(`Error in sendMessage: ${error.message}`);
       socket.emit("error", { message: "Failed to send message" });
