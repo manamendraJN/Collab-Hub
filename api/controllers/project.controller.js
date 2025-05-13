@@ -128,6 +128,13 @@ export const removeMemberFromProject = async (req, res) => {
       return res.status(404).json({ success: false, message: "Project not found" });
     }
 
+    // Remove the member from the members array
+    project.members = project.members.filter(
+      (member) => member.toString() !== memberId.toString()
+    );
+
+    await project.save();
+
     res.status(200).json({ success: true, project });
   } catch (error) {
     res.status(500).json({ success: false, message: "Error removing member", error: error.message });
