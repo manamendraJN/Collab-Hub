@@ -1,9 +1,11 @@
 import express from "express";
 import { verifyToken } from "../utils/authMiddleware.js";
 import { getUserDetails } from "../controllers/user.controller.js";
+import { getAllUsers } from "../controllers/user.controller.js";
 
 const router = express.Router();
 
 router.get("/profile", verifyToken, getUserDetails);
+router.get("/", verifyToken, getAllUsers);
 
 export default router;
