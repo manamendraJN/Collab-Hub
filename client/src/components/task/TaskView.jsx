@@ -280,7 +280,7 @@ export default function TaskView({
             transition={{ duration: 0.4 }}
             className="w-full rounded-md border border-gray-200"
           >
-            <div className="bg-gray-600 text-white grid grid-cols-[1fr_2fr_1fr_0.8fr_0.8fr_1fr_1fr_0.8fr] gap-4 p-3 rounded-t-md font-medium text-sm">
+            <div className="bg-teal-600 text-white grid grid-cols-[1fr_2fr_1fr_0.8fr_0.8fr_1fr_1fr_0.8fr] gap-4 p-3 rounded-t-md font-medium text-sm">
               <div className="flex items-center space-x-2">
                 <CheckSquare size={14} />
                 <span>Title</span>

@@ -5,6 +5,7 @@ import { X, CheckCircle } from "lucide-react";
 export default function TaskForm({
   isOpen,
   setIsOpen,
+  onClose,
   formData,
   handleInputChange,
   handleTaskSubmit,
@@ -25,7 +26,7 @@ export default function TaskForm({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="fixed inset-0 bg-gray-800 z-40"
-            onClick={() => setIsOpen(false)}
+            onClick={onClose} // Use onClose instead of setIsOpen(false)
           />
 
           {/* Dialog */}
@@ -44,8 +45,9 @@ export default function TaskForm({
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsOpen(false)}
+                onClick={onClose} // Use onClose instead of setIsOpen(false)
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label="Close task form"
               >
                 <X size={20} />
               </motion.button>
@@ -72,6 +74,7 @@ export default function TaskForm({
                     initial="blur"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white"
                     required
+                    aria-label="Task title"
                   />
                 </div>
 
@@ -89,6 +92,7 @@ export default function TaskForm({
                     initial="blur"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white resize-none h-20"
                     required
+                    aria-label="Task description"
                   />
                 </div>
 
@@ -107,6 +111,7 @@ export default function TaskForm({
                     initial="blur"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white"
                     required
+                    aria-label="Task due date"
                   />
                 </div>
 
@@ -124,6 +129,7 @@ export default function TaskForm({
                       whileFocus="focus"
                       initial="blur"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white"
+                      aria-label="Task priority"
                     >
                       <option value="Low">Low</option>
                       <option value="Medium">Medium</option>
@@ -143,6 +149,7 @@ export default function TaskForm({
                       whileFocus="focus"
                       initial="blur"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-500 bg-white"
+                      aria-label="Task complexity"
                     >
                       <option value="Simple">Simple</option>
                       <option value="Moderate">Moderate</option>
@@ -157,6 +164,7 @@ export default function TaskForm({
                   whileHover={{ scale: 1.03, boxShadow: "0 2px 8px rgba(45, 156, 219, 0.2)" }}
                   whileTap={{ scale: 0.98 }}
                   className="w-full py-2.5 px-4 border border-teal-600 text-teal-600 font-medium rounded-md hover:bg-teal-50 transition-all duration-200 flex items-center justify-center space-x-2"
+                  aria-label="Create task"
                 >
                   <span>Create Task</span>
                   <CheckCircle size={16} />

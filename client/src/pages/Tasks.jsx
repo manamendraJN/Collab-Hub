@@ -6,7 +6,6 @@ import WorkloadDisplay from "../components/task/WorkloadDisplay";
 import SectionToggle from "../components/task/SectionToggle";
 import TaskView from "../components/task/TaskView";
 import TaskForm from "../components/task/TaskForm";
-import ReportGenerator from "../components/task/ReportGenerator";
 
 export default function TaskManagement() {
   const [projects, setProjects] = useState([]);
@@ -24,6 +23,7 @@ export default function TaskManagement() {
   const [workloadScores, setWorkloadScores] = useState([]);
   const [isWorkloadExpanded, setIsWorkloadExpanded] = useState(false);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   // Get project name for the selected project
   const selectedProject = projects.find((project) => project._id === selectedProjectId);
@@ -228,10 +228,50 @@ export default function TaskManagement() {
     }));
   };
 
-  const handleGenerateReport = () => {
-    // This function will be passed to ReportGenerator or SectionToggle
-    // Since ReportGenerator handles the fetch, this can be a placeholder or trigger ReportGenerator's logic
-    document.getElementById("report-generator-button")?.click();
+  const handleGenerateReport = async () => {
+    if (!selectedProjectId) {
+      toast.error("Please select a project to generate a report.");
+      return;
+    }
+
+    setIsGeneratingReport(true);
+    try {
+      const response = await fetch(`/api/tasks/report/${selectedProjectId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to generate report");
+      }
+
+      const blob = await response.blob();
+      if (blob.size < 1000) {
+        console.error("Received PDF is too small:", blob.size, "bytes");
+        throw new Error("Generated PDF is invalid or empty");
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${projectName.replace(/[^a-zA-Z0-9]/g, "_")}_Task_Report.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success("Report generated successfully!");
+    } catch (error) {
+      console.error("Error generating report:", error);
+      toast.error(error.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsGeneratingReport(false);
+      setActiveSection("view");
+    }
+  };
+
+  const handleTaskFormClose = () => {
+    setIsTaskFormOpen(false);
+    setActiveSection("view");
   };
 
   const getSelectStyle = (status) => {
@@ -283,10 +323,7 @@ export default function TaskManagement() {
               setActiveSection={setActiveSection}
               setIsTaskFormOpen={setIsTaskFormOpen}
               onGenerateReport={handleGenerateReport}
-            />
-            <ReportGenerator
-              selectedProjectId={selectedProjectId}
-              projectName={projectName}
+              isGeneratingReport={isGeneratingReport}
             />
             {activeSection === "view" && (
               <TaskView
@@ -307,10 +344,16 @@ export default function TaskManagement() {
             <TaskForm
               isOpen={isTaskFormOpen}
               setIsOpen={setIsTaskFormOpen}
+              onClose={handleTaskFormClose}
               formData={formData[selectedProjectId] || {}}
               handleInputChange={(e) => handleInputChange(e, selectedProjectId)}
               handleTaskSubmit={(e) => handleTaskSubmit(e, selectedProjectId)}
             />
+            {activeSection === "report" && isGeneratingReport && (
+              <div className="text-center mt-4">
+                <p className="text-teal-600">Generating report, please wait...</p>
+              </div>
+            )}
           </>
         ) : (
           <p className="text-gray-500 text-center mt-4">
