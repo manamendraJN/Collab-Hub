@@ -49,21 +49,16 @@ const LandingPage = () => {
               >
                 Empower your team with AI-driven tools for seamless project management and collaboration.
               </motion.p>
-              <motion.div
-                variants={buttonVariants}
-                whileHover="hover"
-                whileTap="tap"
-                className="mt-8"
-              >
-                <Link
-                  to="/sign-up"
-                  className="inline-flex items-center px-6 py-3 bg-teal-500 text-white font-medium rounded-lg shadow hover:bg-teal-600 transition-all duration-300"
-                  aria-label="Start using RemoteCollab"
-                >
-                  Start Now
-                  <ChevronRight className="ml-2" size={18} />
-                </Link>
-              </motion.div>
+<div className="mt-8">
+  <Link
+    to="/sign-up"
+    className="inline-flex items-center px-6 py-3 bg-teal-500 text-white font-medium rounded-lg shadow hover:bg-teal-600 transition-all duration-300"
+    aria-label="Start using RemoteCollab"
+  >
+    Start Now
+    <ChevronRight className="ml-2" size={18} />
+  </Link>
+</div>
             </div>
             <div className="hidden md:block flex-1 mt-8 md:mt-0">
               <motion.div
