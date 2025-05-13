@@ -8,13 +8,19 @@ export default function CreateTeam() {
   const [users, setUsers] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(""); // New state for search term
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Fetch project details
+
+        // Log the URL for debugging
+        console.log("Fetching project from: /api/projects/", projectId);
+
+        // Fetch project details (using relative URL with proxy)
         const projectRes = await fetch(`/api/projects/${projectId}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
@@ -22,28 +28,26 @@ export default function CreateTeam() {
           throw new Error(`Project fetch failed: ${projectRes.status} ${projectRes.statusText}`);
         }
         const projectData = await projectRes.json();
-        const name = projectData.project?.name || projectData.name;
-        if (!name) throw new Error("Project name not found in response");
-        setProjectName(name);
+        if (!projectData.success || !projectData.project.name) {
+          throw new Error("Project name not found in response");
+        }
+        setProjectName(projectData.project.name);
 
-        // Fetch all registered users
-        const usersRes = await fetch("/api/users", {
+        // Log the URL for debugging
+        console.log("Fetching users from: /api/user/");
+
+        // Fetch all registered users (using corrected relative URL with proxy)
+        const usersRes = await fetch("/api/user/", {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         if (!usersRes.ok) {
           throw new Error(`Users fetch failed: ${usersRes.status} ${usersRes.statusText}`);
         }
         const usersData = await usersRes.json();
-        console.log("Users API response:", usersData); // Debug response
-        if (!usersData.success) {
+        if (!usersData.success || !Array.isArray(usersData.users)) {
           throw new Error(usersData.message || "Failed to fetch users");
         }
-        const userList = usersData.users;
-        if (!Array.isArray(userList)) {
-          throw new Error("Users data is not an array");
-        }
-        setUsers(userList);
-        console.log("Users state:", userList); // Debug state
+        setUsers(usersData.users);
       } catch (error) {
         console.error("Error fetching data:", error);
         setErrorMessage(`Failed to load project or users: ${error.message}`);
@@ -68,23 +72,38 @@ export default function CreateTeam() {
     }
 
     try {
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      // Log the URL for debugging
+      console.log("Assigning team to: /api/projects/", projectId, "/team");
+
       const res = await fetch(`/api/projects/${projectId}/team`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}` },
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
         body: JSON.stringify({ memberIds: selectedMembers }),
       });
-      if (!res.ok) {
-        throw new Error(`Team assignment failed: ${res.status} ${res.statusText}`);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || `Team assignment failed: ${res.status} ${data.statusText}`);
       }
-      console.log("Team assigned, navigating to:", `/project/${projectId}`);
-      navigate(`/project/${projectId}`);
+      setSuccessMessage("Team members assigned successfully!");
+      setTimeout(() => {
+        navigate(`/project/${projectId}`);
+      }, 1500);
     } catch (error) {
       console.error("Error assigning team:", error);
       setErrorMessage(`Failed to assign team members: ${error.message}`);
     }
   };
+
+  // Filter users based on search term
+  const filteredUsers = users.filter(user =>
+    user.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="container mx-auto p-8">
@@ -100,8 +119,43 @@ export default function CreateTeam() {
           {errorMessage}
         </div>
       )}
+      {successMessage && (
+        <div className="bg-green-100 text-green-700 p-4 rounded-lg mb-4">
+          {successMessage}
+        </div>
+      )}
 
       <div className="bg-gray-100 p-6 rounded-lg shadow-md">
+        <div className="mb-4">
+          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+            Search by Username
+          </label>
+          <div className="relative">
+            <svg
+              className="w-5 h-5 text-gray-500 absolute left-2 top-1/2 transform -translate-y-1/2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              ></path>
+            </svg>
+            <input
+              type="text"
+              id="search"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
         <label
           htmlFor="members"
           className="block text-lg font-medium text-gray-700 mb-2"
@@ -113,18 +167,19 @@ export default function CreateTeam() {
           multiple
           value={selectedMembers}
           onChange={handleMemberChange}
+          aria-label="Select team members"
           className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {isLoading ? (
             <option disabled>Loading users...</option>
-          ) : users.length > 0 ? (
-            users.map((user) => (
+          ) : filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => (
               <option key={user._id} value={user._id}>
-                {user.username}
+                {user.username} ({user.email})
               </option>
             ))
           ) : (
-            <option disabled>No users available</option>
+            <option disabled>No users found</option>
           )}
         </select>
         <p className="text-sm text-gray-500 mt-2">
@@ -134,7 +189,8 @@ export default function CreateTeam() {
         <div className="mt-6 flex space-x-4">
           <button
             onClick={handleAssignTeam}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+            disabled={isLoading}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
           >
             Assign Team
           </button>
