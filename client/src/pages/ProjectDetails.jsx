@@ -14,11 +14,12 @@ export default function ProjectDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
+  const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false); // For handling fetch errors
-  const [errorMessage, setErrorMessage] = useState(""); // For deletion/navigation error messages
-  const [editing, setEditing] = useState(false); // Track edit mode
-  const [editForm, setEditForm] = useState(null); // Store editable project data
+  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState(null);
 
   useEffect(() => {
     fetchProjectDetails();
@@ -26,6 +27,7 @@ export default function ProjectDetails() {
 
   const fetchProjectDetails = async () => {
     try {
+      setLoading(true);
       const res = await fetch(`/api/projects/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
@@ -37,7 +39,11 @@ export default function ProjectDetails() {
       const data = await res.json();
       if (data.project) {
         setProject(data.project);
-        setEditForm(data.project); // Initialize edit form with project data
+        setEditForm(data.project);
+
+        if (data.project.members && data.project.members.length > 0) {
+          await fetchMembers(data.project.members);
+        }
       } else {
         setError(true);
       }
@@ -49,8 +55,58 @@ export default function ProjectDetails() {
     }
   };
 
+  const fetchMembers = async (memberIds) => {
+    try {
+      const res = await fetch(`/api/user/`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (!res.ok) {
+        throw new Error(`Members fetch failed with status: ${res.status}`);
+      }
+      const data = await res.json();
+      if (data.success && Array.isArray(data.users)) {
+        const memberDetails = data.users.filter(user =>
+          memberIds.some(id => id.toString() === user._id.toString())
+        );
+        setMembers(memberDetails);
+      }
+    } catch (error) {
+      console.error("Error fetching member details:", error);
+    }
+  };
+
+  const removeMember = async (memberId) => {
+    try {
+      const res = await fetch(`/api/projects/${id}/remove-member`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ memberId }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to remove member: ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (data.success) {
+        // Update the project and members state
+        setProject(data.project);
+        setMembers(members.filter(member => member._id.toString() !== memberId.toString()));
+        setErrorMessage("");
+      } else {
+        throw new Error(data.message || "Failed to remove member");
+      }
+    } catch (error) {
+      console.error("Error removing member:", error);
+      setErrorMessage(`Error removing member: ${error.message}`);
+    }
+  };
+
   const handleEdit = () => {
-    setEditing(true); // Enter edit mode
+    setEditing(true);
   };
 
   const handleSave = async () => {
@@ -65,9 +121,12 @@ export default function ProjectDetails() {
       });
       if (res.ok) {
         const updatedProject = await res.json();
-        setProject(updatedProject.project); // Update displayed project
-        setEditing(false); // Exit edit mode
-        setErrorMessage(""); // Clear any error messages
+        setProject(updatedProject.project);
+        setEditing(false);
+        setErrorMessage("");
+        if (updatedProject.project.members) {
+          await fetchMembers(updatedProject.project.members);
+        }
       } else {
         console.error("Error updating project:", res.status);
         setErrorMessage("Failed to update project.");
@@ -79,9 +138,9 @@ export default function ProjectDetails() {
   };
 
   const handleCancel = () => {
-    setEditing(false); // Exit edit mode
-    setEditForm(project); // Reset form to original project data
-    setErrorMessage(""); // Clear any error messages
+    setEditing(false);
+    setEditForm(project);
+    setErrorMessage("");
   };
 
   const deleteProject = async () => {
@@ -96,8 +155,8 @@ export default function ProjectDetails() {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       if (res.ok) {
-        console.log("Deletion successful, navigating to /projects");
-        navigate("/projects", { replace: false });
+        console.log("Deletion successful, navigating to /project");
+        navigate("/project");
       } else {
         console.error("Error deleting project:", res.status);
         setErrorMessage("Failed to delete project.");
@@ -109,13 +168,13 @@ export default function ProjectDetails() {
   };
 
   const handleBackToProjects = () => {
-    console.log("Attempting to navigate to /projects from /project/" + id);
-    try {
-      navigate("/projects", { replace: false });
-    } catch (error) {
-      console.error("Navigation error:", error);
-      setErrorMessage("Failed to navigate to projects page. Please try again.");
-    }
+    console.log("Attempting to navigate to /project from /project/" + id);
+    navigate("/project");
+    console.log("Navigation attempt completed");
+  };
+
+  const handleAddMoreMembers = () => {
+    navigate(`/create-team/${id}`);
   };
 
   if (loading) {
@@ -268,6 +327,35 @@ export default function ProjectDetails() {
               <strong>End Date:</strong>{" "}
               {new Date(project.endDate).toLocaleDateString()}
             </p>
+            <div className="mt-4">
+              <strong>Assigned Members:</strong>
+              {members.length > 0 ? (
+                <ul className="list-disc list-inside mt-2">
+                  {members.map((member) => (
+                    <li key={member._id} className="flex items-center justify-between">
+                      <span>
+                        {member.username} ({member.email})
+                      </span>
+                      <button
+                        onClick={() => removeMember(member._id)}
+                        className="text-red-500 hover:text-red-700 text-sm ml-2"
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500 mt-2">No members assigned.</p>
+              )}
+              {/* Add More Members Button */}
+              <button
+                onClick={handleAddMoreMembers}
+                className="mt-2 bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600 text-sm"
+              >
+                Add More Members
+              </button>
+            </div>
             <div className="flex space-x-2 mt-4">
               <button
                 onClick={handleEdit}

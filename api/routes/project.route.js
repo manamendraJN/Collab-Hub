@@ -1,13 +1,16 @@
+// projectRoutes.js
 import express from "express";
-import { createProject, getProjects, updateProject, deleteProject, getProjectById } from "../controllers/project.controller.js";
-import { verifyToken } from "../utils/authMiddleware.js"; 
+import { createProject, getProjects, updateProject, deleteProject, getProjectById, assignMembers, removeMemberFromProject } from "../controllers/project.controller.js";
+import { verifyToken } from "../utils/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", verifyToken, createProject); // Create project
-router.get("/", verifyToken, getProjects); // Get all projects
-router.put("/:id", verifyToken, updateProject); // Update project
-router.delete("/:id", verifyToken, deleteProject); // Delete project
+router.post("/", verifyToken, createProject);
+router.get("/", verifyToken, getProjects);
+router.put("/:id", verifyToken, updateProject);
+router.delete("/:id", verifyToken, deleteProject);
 router.get("/:id", verifyToken, getProjectById);
+router.post("/:projectId/team", verifyToken, assignMembers);
+router.post("/:id/remove-member", verifyToken, removeMemberFromProject); // Add this line
 
 export default router;
