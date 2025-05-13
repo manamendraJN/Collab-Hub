@@ -6,6 +6,7 @@ import WorkloadDisplay from "../components/task/WorkloadDisplay";
 import SectionToggle from "../components/task/SectionToggle";
 import TaskView from "../components/task/TaskView";
 import TaskForm from "../components/task/TaskForm";
+import ReportGenerator from "../components/task/ReportGenerator";
 
 export default function TaskManagement() {
   const [projects, setProjects] = useState([]);
@@ -23,6 +24,10 @@ export default function TaskManagement() {
   const [workloadScores, setWorkloadScores] = useState([]);
   const [isWorkloadExpanded, setIsWorkloadExpanded] = useState(false);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+
+  // Get project name for the selected project
+  const selectedProject = projects.find((project) => project._id === selectedProjectId);
+  const projectName = selectedProject?.name || "Project";
 
   useEffect(() => {
     fetchProjects();
@@ -107,7 +112,6 @@ export default function TaskManagement() {
       });
       if (!res.ok) {
         if (res.status === 404) {
-          // No team found for this project, set empty members array
           setAllocatedMembers((prev) => ({
             ...prev,
             [projectId]: [],
@@ -224,6 +228,12 @@ export default function TaskManagement() {
     }));
   };
 
+  const handleGenerateReport = () => {
+    // This function will be passed to ReportGenerator or SectionToggle
+    // Since ReportGenerator handles the fetch, this can be a placeholder or trigger ReportGenerator's logic
+    document.getElementById("report-generator-button")?.click();
+  };
+
   const getSelectStyle = (status) => {
     switch (status) {
       case "Pending":
@@ -246,7 +256,7 @@ export default function TaskManagement() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-6 ">
+    <div className="max-w-7xl mx-auto p-6">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -272,6 +282,11 @@ export default function TaskManagement() {
               activeSection={activeSection}
               setActiveSection={setActiveSection}
               setIsTaskFormOpen={setIsTaskFormOpen}
+              onGenerateReport={handleGenerateReport}
+            />
+            <ReportGenerator
+              selectedProjectId={selectedProjectId}
+              projectName={projectName}
             />
             {activeSection === "view" && (
               <TaskView
