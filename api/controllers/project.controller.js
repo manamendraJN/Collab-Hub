@@ -140,3 +140,50 @@ export const removeMemberFromProject = async (req, res) => {
     res.status(500).json({ success: false, message: "Error removing member", error: error.message });
   }
 };
+
+export const getTeamProductivityReport = async (req, res) => {
+  try {
+    const projects = await Project.find().populate("members", "username email");
+    const productivityMap = {};
+
+    // Aggregate projects by member
+    projects.forEach(project => {
+      project.members.forEach(member => {
+        const memberId = member._id.toString();
+        if (!productivityMap[memberId]) {
+          productivityMap[memberId] = {
+            username: member.username,
+            email: member.email,
+            completed: 0,
+            inProgress: 0,
+            atRisk: 0,
+            total: 0,
+          };
+        }
+        if (project.status === "Completed") {
+          productivityMap[memberId].completed += 1;
+        } else if (project.status === "In Progress") {
+          productivityMap[memberId].inProgress += 1;
+        } else if (project.status === "At Risk") {
+          productivityMap[memberId].atRisk += 1;
+        }
+        productivityMap[memberId].total += 1;
+      });
+    });
+
+    const report = {
+      members: Object.values(productivityMap).sort((a, b) => b.completed - a.completed), // Sort by completed projects
+    };
+
+    res.status(200).json({
+      success: true,
+      report,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error generating team productivity report",
+      error: error.message,
+    });
+  }
+};

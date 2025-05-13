@@ -17,6 +17,7 @@ import CreateProject from './pages/CreateProject.jsx';
 import ProjectDetails from './pages/ProjectDetails.jsx';
 import ProjectEdit from './pages/ProjectEdit.jsx';
 import CreateTeam from "./pages/CreateTeam.jsx";
+import TeamProductivityReport from "./pages/TeamProductivityReport.jsx";
 
 
 function AppContent() {
@@ -42,6 +43,7 @@ function AppContent() {
             <Route path="/project/:id" element={<ProjectDetails />} />
             <Route path="/edit-project/:id" element={<ProjectEdit />} />
             <Route path="/create-team/:projectId" element={<CreateTeam />} />
+            <Route path="/report/productivity" element={<TeamProductivityReport />} />
           </Routes>
         </Header>
       ) : (

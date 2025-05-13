@@ -17,6 +17,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "mongodb": "^6.13.0",
     "mongoose": "^8.8.1",
     "nodemon": "^3.1.7",
@@ -24,6 +26,7 @@
     "react-router-dom": "^7.4.0",
     "recharts": "^2.15.1",
     "three": "^0.173.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "xlsx": "^0.18.5"
   }
 }
