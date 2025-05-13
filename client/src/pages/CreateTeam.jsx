@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom"; // Add Link for navigation
 
 export default function CreateTeam() {
   const { projectId } = useParams();
@@ -200,6 +200,10 @@ export default function CreateTeam() {
           >
             Cancel
           </button>
+          {/* Add navigation link as specified */}
+          <Link to="/report/productivity" className="ml-4 text-blue-500 hover:underline">
+            View Team Productivity Report
+          </Link>
         </div>
       </div>
     </div>

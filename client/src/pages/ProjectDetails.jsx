@@ -20,6 +20,8 @@ export default function ProjectDetails() {
   const [errorMessage, setErrorMessage] = useState("");
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(null);
+  const [showModal, setShowModal] = useState(false); // State for modal visibility
+  const [memberToRemove, setMemberToRemove] = useState(null); // State for member to remove
 
   useEffect(() => {
     fetchProjectDetails();
@@ -75,7 +77,16 @@ export default function ProjectDetails() {
     }
   };
 
-  const removeMember = async (memberId) => {
+  const handleRemoveMember = (memberId) => {
+    // Show the confirmation modal instead of removing immediately
+    const member = members.find(m => m._id.toString() === memberId.toString());
+    setMemberToRemove(member);
+    setShowModal(true);
+  };
+
+  const confirmRemoveMember = async () => {
+    if (!memberToRemove) return;
+
     try {
       const res = await fetch(`/api/projects/${id}/remove-member`, {
         method: "POST",
@@ -83,7 +94,7 @@ export default function ProjectDetails() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ memberId }),
+        body: JSON.stringify({ memberId: memberToRemove._id }),
       });
 
       if (!res.ok) {
@@ -94,7 +105,7 @@ export default function ProjectDetails() {
       if (data.success) {
         // Update the project and members state
         setProject(data.project);
-        setMembers(members.filter(member => member._id.toString() !== memberId.toString()));
+        setMembers(members.filter(member => member._id.toString() !== memberToRemove._id.toString()));
         setErrorMessage("");
       } else {
         throw new Error(data.message || "Failed to remove member");
@@ -102,7 +113,15 @@ export default function ProjectDetails() {
     } catch (error) {
       console.error("Error removing member:", error);
       setErrorMessage(`Error removing member: ${error.message}`);
+    } finally {
+      setShowModal(false);
+      setMemberToRemove(null);
     }
+  };
+
+  const cancelRemoveMember = () => {
+    setShowModal(false);
+    setMemberToRemove(null);
   };
 
   const handleEdit = () => {
@@ -337,7 +356,7 @@ export default function ProjectDetails() {
                         {member.username} ({member.email})
                       </span>
                       <button
-                        onClick={() => removeMember(member._id)}
+                        onClick={() => handleRemoveMember(member._id)}
                         className="text-red-500 hover:text-red-700 text-sm ml-2"
                       >
                         Remove
@@ -373,6 +392,38 @@ export default function ProjectDetails() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Confirm Removal
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to remove{" "}
+              <span className="font-medium">
+                {memberToRemove?.username} ({memberToRemove?.email})
+              </span>{" "}
+              from this project?
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelRemoveMember}
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+              >
+                No
+              </button>
+              <button
+                onClick={confirmRemoveMember}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
