@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Trash2, Edit, FileText, Eye, RefreshCw, MoreVertical } from "lucide-react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const FileManagement = () => {
   const [files, setFiles] = useState([]);
@@ -16,6 +17,8 @@ const FileManagement = () => {
   const [versions, setVersions] = useState([]);
   const [restoringVersion, setRestoringVersion] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // State for modal visibility
+  const [fileIdToDelete, setFileIdToDelete] = useState(null); // State to store file ID for deletion
 
   const fileInputRef = useRef();
   const menuRefs = useRef({});
@@ -26,6 +29,7 @@ const FileManagement = () => {
       setFiles(response.data);
     } catch (error) {
       console.error('Error fetching files:', error);
+      toast.error('Failed to fetch files.');
     }
   };
 
@@ -61,7 +65,7 @@ const FileManagement = () => {
     } else if (fileExtension === 'pdf') {
       window.open(fileUrl, '_blank');
     } else {
-      alert('Preview not available for this file type.');
+      toast.warn('Preview not available for this file type.');
     }
   };
 
@@ -77,26 +81,32 @@ const FileManagement = () => {
       await axios.post('http://localhost:5000/api/files/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+      toast.success('File uploaded successfully!');
       resetForm(e);
       fetchFiles();
     } catch (error) {
       console.error('Upload error:', error);
+      toast.error('Failed to upload file.');
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleFileDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this file?')) {
-      setIsDeleting(true);
-      try {
-        await axios.delete(`http://localhost:5000/api/files/${id}`);
-        fetchFiles();
-      } catch (error) {
-        console.error('Delete error:', error);
-      } finally {
-        setIsDeleting(false);
-      }
+  const handleFileDelete = async () => {
+    if (!fileIdToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await axios.delete(`http://localhost:5000/api/files/${fileIdToDelete}`);
+      toast.success('File deleted successfully!');
+      fetchFiles();
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error('Failed to delete file.');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false); // Close the modal
+      setFileIdToDelete(null); // Reset the file ID
     }
   };
 
@@ -112,11 +122,13 @@ const FileManagement = () => {
       await axios.put(`http://localhost:5000/api/files/${fileToUpdate._id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+      toast.success('File updated successfully!');
       setFileToUpdate(null);
       resetForm(e);
       fetchFiles();
     } catch (error) {
       console.error('Update error:', error);
+      toast.error('Failed to update file.');
     } finally {
       setIsUpdating(false);
     }
@@ -132,8 +144,12 @@ const FileManagement = () => {
       const res = await axios.get(`http://localhost:5000/api/files/${fileId}/versions`);
       setVersions(res.data);
       setShowVersions(fileId);
+      if (res.data.length === 0) {
+        toast.info('No previous versions available.');
+      }
     } catch (err) {
       console.error('Error fetching versions:', err);
+      toast.error('Failed to fetch file versions.');
     }
   };
 
@@ -141,10 +157,12 @@ const FileManagement = () => {
     setRestoringVersion(versionNumber);
     try {
       await axios.post(`http://localhost:5000/api/files/${fileId}/restore/${versionNumber}`);
+      toast.success(`Version ${versionNumber} restored successfully!`);
       fetchFiles();
       setShowVersions(null);
     } catch (err) {
       console.error('Restore error:', err);
+      toast.error('Failed to restore version.');
     } finally {
       setRestoringVersion(null);
     }
@@ -171,6 +189,68 @@ const FileManagement = () => {
 
   return (
     <div className="w-full h-full max-w-full mx-auto p-8 bg-white rounded-lg shadow-lg mt-0 transition-all duration-300 ease-in-out">
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-white rounded-lg p-6 shadow-lg max-w-sm w-full"
+            >
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Confirm Delete
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Are you sure you want to delete this file? This action cannot be undone.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setFileIdToDelete(null);
+                  }}
+                  className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-all duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleFileDelete}
+                  disabled={isDeleting}
+                  className={`px-4 py-2 rounded-md text-white font-medium transition-all duration-200 ${
+                    isDeleting
+                      ? 'bg-red-300 cursor-not-allowed'
+                      : 'bg-red-600 hover:bg-red-700'
+                  }`}
+                >
+                  {isDeleting ? 'Deleting...' : 'Confirm'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <h1 className="text-3xl font-bold text-gray-800 mb-6">File Management</h1>
 
       {/* Upload Section */}
@@ -197,18 +277,18 @@ const FileManagement = () => {
                 hover:file:bg-blue-200"
             />
             <button
-  type="submit"
-  disabled={!selectedFile || isUploading || isUpdating}
-  className={`px-6 py-2 rounded-md text-white font-medium transition-all duration-200 ease-in-out ${
-    !selectedFile || isUploading || isUpdating
-      ? 'bg-blue-300 cursor-not-allowed'
-      : fileToUpdate
-      ? 'bg-red-600 hover:bg-red-700'
-      : 'bg-blue-600 hover:bg-blue-700'
-  }`}
->
-  {isUploading || isUpdating ? 'Processing...' : fileToUpdate ? 'Update' : 'Upload'}
-</button>
+              type="submit"
+              disabled={!selectedFile || isUploading || isUpdating}
+              className={`px-6 py-2 rounded-md text-white font-medium transition-all duration-200 ease-in-out ${
+                !selectedFile || isUploading || isUpdating
+                  ? 'bg-blue-300 cursor-not-allowed'
+                  : fileToUpdate
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+            >
+              {isUploading || isUpdating ? 'Processing...' : fileToUpdate ? 'Update' : 'Upload'}
+            </button>
 
             {fileToUpdate && (
               <button
@@ -331,7 +411,8 @@ const FileManagement = () => {
                                   </a>
                                   <button
                                     onClick={() => {
-                                      handleFileDelete(file._id);
+                                      setFileIdToDelete(file._id); // Set the file ID to delete
+                                      setShowDeleteModal(true); // Show the modal
                                       setOpenMenuId(null);
                                     }}
                                     disabled={isDeleting}
