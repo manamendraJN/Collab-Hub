@@ -15,6 +15,9 @@ export default function TaskForm({
     blur: { scale: 1, borderColor: "#E5E7EB", transition: { duration: 0.2 } },
   };
 
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -26,7 +29,7 @@ export default function TaskForm({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="fixed inset-0 bg-gray-800 z-40"
-            onClick={onClose} // Use onClose instead of setIsOpen(false)
+            onClick={onClose}
           />
 
           {/* Dialog */}
@@ -45,7 +48,7 @@ export default function TaskForm({
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={onClose} // Use onClose instead of setIsOpen(false)
+                onClick={onClose}
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
                 aria-label="Close task form"
               >
@@ -106,6 +109,7 @@ export default function TaskForm({
                     name="dueDate"
                     value={formData.dueDate || ""}
                     onChange={handleInputChange}
+                    min={today} // Restrict to today or future dates
                     variants={inputVariants}
                     whileFocus="focus"
                     initial="blur"

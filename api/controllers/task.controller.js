@@ -47,6 +47,10 @@ export const createTask = async (req, res) => {
 
     const teamMembers = team.members;
 
+    // Fetch team member names once for both before and after logs
+    const teamMemberNames = await TeamMember.find({ _id: { $in: teamMembers } }).select('name _id');
+
+    // Calculate workload scores before assignment
     const workloadData = await Promise.all(
       teamMembers.map(async (memberId) => {
         const totalTasks = await Task.countDocuments({ assignedMember: memberId });
@@ -63,14 +67,23 @@ export const createTask = async (req, res) => {
       })
     );
 
-    workloadData.sort((a, b) => a.workloadScore - b.workloadScore);
+    // Log workload scores before assignment
+    const workloadBeforeWithNames = workloadData.map(data => {
+      const member = teamMemberNames.find(member => member._id.toString() === data.member.toString());
+      return { Name: member?.name || "Unknown", WorkloadScore: data.workloadScore };
+    });
+    console.log(`\nWorkload Scores BEFORE Task Assignment (Project: ${existingProject.name}):`);
+    console.table(workloadBeforeWithNames);
 
+    // Assign task to member with lowest workload
+    workloadData.sort((a, b) => a.workloadScore - b.workloadScore);
     const assignedMember = workloadData[0]?.member;
 
     if (!assignedMember) {
       return res.status(400).json({ success: false, message: "No available team members for assignment" });
     }
 
+    // Create and save new task
     const newTask = new Task({
       title,
       description,
@@ -80,9 +93,9 @@ export const createTask = async (req, res) => {
       assignedMember,
       project
     });
-
     await newTask.save();
 
+    // Calculate workload scores after assignment
     const updatedWorkloadData = await Promise.all(
       teamMembers.map(async (memberId) => {
         const totalTasks = await Task.countDocuments({ assignedMember: memberId });
@@ -99,8 +112,15 @@ export const createTask = async (req, res) => {
       })
     );
 
-    const teamMemberNames = await TeamMember.find({ _id: { $in: teamMembers } }).select('name _id');
+    // Log workload scores after assignment
+    const workloadAfterWithNames = updatedWorkloadData.map(data => {
+      const member = teamMemberNames.find(member => member._id.toString() === data.member.toString());
+      return { Name: member?.name || "Unknown", WorkloadScore: data.workloadScore };
+    });
+    console.log(`\nWorkload Scores AFTER Task Assignment (Project: ${existingProject.name}):`);
+    console.table(workloadAfterWithNames);
 
+    // Prepare response
     const workloadWithNames = updatedWorkloadData.map(data => {
       const member = teamMemberNames.find(member => member._id.toString() === data.member.toString());
       return { name: member?.name || "Unknown", workloadScore: data.workloadScore };
