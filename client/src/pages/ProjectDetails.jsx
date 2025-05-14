@@ -20,8 +20,9 @@ export default function ProjectDetails() {
   const [errorMessage, setErrorMessage] = useState("");
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(null);
-  const [showModal, setShowModal] = useState(false); // State for modal visibility
+  const [showModal, setShowModal] = useState(false); // State for member removal modal
   const [memberToRemove, setMemberToRemove] = useState(null); // State for member to remove
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // State for delete confirmation modal
 
   useEffect(() => {
     fetchProjectDetails();
@@ -78,7 +79,6 @@ export default function ProjectDetails() {
   };
 
   const handleRemoveMember = (memberId) => {
-    // Show the confirmation modal instead of removing immediately
     const member = members.find(m => m._id.toString() === memberId.toString());
     setMemberToRemove(member);
     setShowModal(true);
@@ -103,7 +103,6 @@ export default function ProjectDetails() {
 
       const data = await res.json();
       if (data.success) {
-        // Update the project and members state
         setProject(data.project);
         setMembers(members.filter(member => member._id.toString() !== memberToRemove._id.toString()));
         setErrorMessage("");
@@ -162,12 +161,16 @@ export default function ProjectDetails() {
     setErrorMessage("");
   };
 
-  const deleteProject = async () => {
+  const handleDeleteClick = () => {
     if (!canDeleteProject(project.endDate)) {
       setErrorMessage("You cannot delete this project because its due date is within the last month.");
       return;
     }
+    // Show the delete confirmation modal if the project can be deleted
+    setShowDeleteModal(true);
+  };
 
+  const confirmDeleteProject = async () => {
     try {
       const res = await fetch(`/api/projects/${id}`, {
         method: "DELETE",
@@ -183,7 +186,13 @@ export default function ProjectDetails() {
     } catch (error) {
       console.error("Error deleting project:", error);
       setErrorMessage("Error deleting project.");
+    } finally {
+      setShowDeleteModal(false);
     }
+  };
+
+  const cancelDeleteProject = () => {
+    setShowDeleteModal(false);
   };
 
   const handleBackToProjects = () => {
@@ -367,7 +376,6 @@ export default function ProjectDetails() {
               ) : (
                 <p className="text-gray-500 mt-2">No members assigned.</p>
               )}
-              {/* Add More Members Button */}
               <button
                 onClick={handleAddMoreMembers}
                 className="mt-2 bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600 text-sm"
@@ -383,7 +391,7 @@ export default function ProjectDetails() {
                 ✎ Edit
               </button>
               <button
-                onClick={deleteProject}
+                onClick={handleDeleteClick}
                 className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600 text-sm"
               >
                 🗑️ Delete
@@ -393,7 +401,7 @@ export default function ProjectDetails() {
         )}
       </div>
 
-      {/* Confirmation Modal */}
+      {/* Member Removal Confirmation Modal */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
@@ -416,6 +424,35 @@ export default function ProjectDetails() {
               </button>
               <button
                 onClick={confirmRemoveMember}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Project Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Confirm Project Deletion
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete the project{" "}
+              <span className="font-medium">{project.name}</span>? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelDeleteProject}
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+              >
+                No
+              </button>
+              <button
+                onClick={confirmDeleteProject}
                 className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
               >
                 Yes
