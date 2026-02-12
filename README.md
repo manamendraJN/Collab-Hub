@@ -1,129 +1,132 @@
-CollabHub - Remote Work Collaboration Website
+# 🚀 CollabHub – Remote Work Collaboration Platform
 
-Overview
+![MERN](https://img.shields.io/badge/Stack-MERN-green)
+![React](https://img.shields.io/badge/Frontend-React-blue)
+![Node](https://img.shields.io/badge/Backend-Node.js-brightgreen)
+![MongoDB](https://img.shields.io/badge/Database-MongoDB-darkgreen)
+![License](https://img.shields.io/badge/License-Academic-orange)
 
-CollabHub is a remote work collaboration platform designed to streamline project management, task tracking, and team productivity. Built as a MERN stack application (MongoDB, Express.js, React, Node.js), it offers a modern, user-friendly interface to support distributed teams. The platform includes features like secure user management, task creation and assignment, and an intelligent Smart Workload Balancer to ensure fair task distribution.
+---
 
-This project was developed by Manamendra J. N (IT22608772) as part of a university assignment at SLIIT, completed between March 10, 2025, and April 30, 2025. It focuses on delivering a professional experience with real-time updates, responsive design, and a light theme styled using Tailwind CSS.
+## 📌 Overview
 
-Features
+**CollabHub** is a full-stack remote work collaboration platform built to streamline **project management, task tracking, and team productivity** for distributed teams.
 
-User Management
+Developed using the **MERN stack (MongoDB, Express.js, React, Node.js)**, the application delivers a modern, responsive, and user-friendly experience while maintaining strong security practices.
 
+The system introduces a **Smart Workload Balancer** that intelligently distributes tasks to ensure fair workload allocation among team members.
 
+🎓 **Academic Project:** Sri Lanka Institute of Information Technology (SLIIT)  
+📅 **Duration:** March 10, 2025 – April 30, 2025  
 
+---
 
+## ✨ Key Features
 
-User Registration: Allows new users to sign up with their name, email, password, and role (e.g., Project Manager or Team Member). Features secure password encryption (bcrypt) and email verification via a confirmation link.
+### 🔐 User Management
+- Secure user registration with encrypted passwords (**bcrypt**)
+- Email-based account verification  
+- JWT authentication  
+- Role-based access control (Project Manager / Team Member)
 
+---
 
+### ✅ Task Management
+- Full **CRUD operations** for tasks  
+- Set priority levels, descriptions, and due dates  
+- Real-time task updates for better collaboration  
+- Manual task assignment via team member selection  
 
-User Authentication: Provides secure login using email and password, with JWT-based authentication and role-based dashboard redirection.
+---
 
-Task Management
+### 🧠 Smart Workload Balancer
+Automatically assigns tasks using the formula:
 
+```
+Workload Score = (Tasks × 2) + (Urgent Tasks × 3) + (Complex Tasks × 5)
+```
 
+✔ Uses average task completion time as a tiebreaker  
+✔ Allows managers to manually override assignments  
 
+---
 
+## 🛠 Tech Stack
 
-CRUD Operations: Managers can create, view, update, and delete tasks with attributes like title, description, priority, and due date. The task history view displays task details in a table with real-time updates.
+| Category | Technology |
+|--------|-------------|
+| **Frontend** | React, Tailwind CSS, Material-UI |
+| **Backend** | Node.js, Express.js |
+| **Database** | MongoDB |
+| **Authentication** | JWT, bcrypt |
+| **Real-Time** | Socket.IO |
+| **Version Control** | Git, GitHub |
 
+---
 
+## 📂 Repository Structure
 
-Manual Task Assignment: Managers can manually assign tasks to team members during creation or editing, with a dropdown listing eligible team members.
+```
+collabhub/
+│
+├── client/      # React frontend
+├── server/      # Node.js & Express backend
+├── docs/        # Documentation
+└── README.md
+```
 
-Smart Workload Balancer
+---
 
+## ⚙️ Prerequisites
 
+Make sure you have installed:
 
+- Node.js (v16 or higher)
+- npm (v8 or higher)
+- MongoDB (Local or Atlas)
+- Git
 
+---
 
-Automatic Task Assignment: Automatically assigns tasks to team members based on workload scores calculated as (Tasks × 2 + Urgent Tasks × 3 + Complex Tasks × 5). Uses past performance (average task completion time) as a tiebreaker.
+## 🚀 Installation
 
+```bash
+# Clone the repository
+git clone https://github.com/manamendraJN/Collab-Hub.git
 
+# Navigate into the project
+cd collabhub
 
-Manual Override: Managers can override automatic assignments to manually select a team member, ensuring flexibility in task allocation.
+# Install frontend dependencies
+cd client
+npm install
 
-Tech Stack
+# Install backend dependencies
+cd ../server
+npm install
+```
 
+---
 
+## ▶️ Running the Application
 
+```bash
+# Start backend
+cd server
+npm start
 
+# Start frontend
+cd client
+npm start
+```
 
-Frontend: React, Tailwind CSS, Material-UI (for tables and dialogs)
+---
 
+## 🎯 Project Objectives
 
+- Build a scalable full-stack collaboration platform  
+- Implement secure authentication and authorization  
+- Design an intelligent workload distribution system  
+- Deliver a responsive, production-style UI  
 
-Backend: Node.js, Express.js
-
-
-
-Database: MongoDB
-
-
-
-Authentication: JWT, bcrypt
-
-
-
-Real-time Updates: Socket.IO (for task status updates)
-
-
-
-Version Control: Git, GitHub
-
-GitHub Explanation
-
-Repository Setup
-
-This project is hosted on GitHub for version control, collaboration, and deployment. The repository contains the full source code, documentation, and deployment scripts.
-
-
-
-
-
-Repository URL: (Add your GitHub repository URL here, e.g., https://github.com/manamendra/collabhub)
-
-
-
-Structure:
-
-
-
-
-
-/client: React frontend code
-
-
-
-/server: Node.js/Express backend code
-
-
-
-/docs: Documentation and research papers
-
-
-
-README.md: Project overview and setup instructions
-
-Prerequisites
-
-Before setting up the project, ensure you have the following installed:
-
-
-
-
-
-Node.js (v16 or higher)
-
-
-
-npm (v8 or higher)
-
-
-
-MongoDB (local or cloud instance, e.g., MongoDB Atlas)
-
-
-
-Git
+---
