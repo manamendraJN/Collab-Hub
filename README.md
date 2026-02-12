@@ -1,4 +1,4 @@
-# 🚀 CollabHub – Remote Work Collaboration Platform
+# CollabHub – Remote Work Collaboration Platform
 
 ![MERN](https://img.shields.io/badge/Stack-MERN-green)
 ![React](https://img.shields.io/badge/Frontend-React-blue)
@@ -8,7 +8,7 @@
 
 ---
 
-## 📌 Overview
+## Overview
 
 **CollabHub** is a full-stack remote work collaboration platform built to streamline **project management, task tracking, and team productivity** for distributed teams.
 
@@ -16,14 +16,14 @@ Developed using the **MERN stack (MongoDB, Express.js, React, Node.js)**, the ap
 
 The system introduces a **Smart Workload Balancer** that intelligently distributes tasks to ensure fair workload allocation among team members.
 
-🎓 **Academic Project:** Sri Lanka Institute of Information Technology (SLIIT)  
-📅 **Duration:** March 10, 2025 – April 30, 2025  
+**Academic Project:** Sri Lanka Institute of Information Technology (SLIIT)  
+**Duration:** March 10, 2025 – April 30, 2025  
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🔐 User Management
+### User Management
 - Secure user registration with encrypted passwords (**bcrypt**)
 - Email-based account verification  
 - JWT authentication  
@@ -31,7 +31,7 @@ The system introduces a **Smart Workload Balancer** that intelligently distribut
 
 ---
 
-### ✅ Task Management
+### Task Management
 - Full **CRUD operations** for tasks  
 - Set priority levels, descriptions, and due dates  
 - Real-time task updates for better collaboration  
@@ -39,7 +39,7 @@ The system introduces a **Smart Workload Balancer** that intelligently distribut
 
 ---
 
-### 🧠 Smart Workload Balancer
+### Smart Workload Balancer
 Automatically assigns tasks using the formula:
 
 ```
@@ -64,7 +64,7 @@ Workload Score = (Tasks × 2) + (Urgent Tasks × 3) + (Complex Tasks × 5)
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```
 collabhub/
@@ -77,7 +77,7 @@ collabhub/
 
 ---
 
-## ⚙️ Prerequisites
+## Prerequisites
 
 Make sure you have installed:
 
@@ -88,7 +88,7 @@ Make sure you have installed:
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ```bash
 # Clone the repository
@@ -108,7 +108,7 @@ npm install
 
 ---
 
-## ▶️ Running the Application
+## Running the Application
 
 ```bash
 # Start backend
@@ -122,7 +122,7 @@ npm start
 
 ---
 
-## 🎯 Project Objectives
+## Project Objectives
 
 - Build a scalable full-stack collaboration platform  
 - Implement secure authentication and authorization  
@@ -130,3 +130,4 @@ npm start
 - Deliver a responsive, production-style UI  
 
 ---
+
