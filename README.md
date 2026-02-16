@@ -51,7 +51,7 @@ Workload Score = (Tasks × 2) + (Urgent Tasks × 3) + (Complex Tasks × 5)
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Category | Technology |
 |--------|-------------|
@@ -130,4 +130,5 @@ npm start
 - Deliver a responsive, production-style UI  
 
 ---
+
 
